@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:srm/color/appcolors.dart';
+import 'package:srm/term_conditions/terms_conditions.dart';
 
 class SignUp extends StatefulWidget {
   const SignUp({super.key});
@@ -354,7 +355,15 @@ class _SignUpState extends State<SignUp> {
                               width: 1,
                             ),
                             TextButton(
-                              onPressed: () {},
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        const TermsConditions(),
+                                  ),
+                                );
+                              },
                               child: Text(
                                 "Term & Conditions",
                                 style: TextStyle(

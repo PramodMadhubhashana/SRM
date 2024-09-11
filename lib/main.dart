@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:srm/color/appcolors.dart';
-import 'package:srm/sign_in&up/sign_in.dart';
+import 'package:srm/pages/book_equiqment.dart';
+import 'package:srm/pages/book_lec_hall.dart';
+import 'package:srm/pages/homepage.dart';
+import 'package:srm/pages/msg.dart';
+import 'package:srm/pages/notifications.dart';
+import 'package:srm/pages/profile.dart';
+import 'package:srm/pages/view_shedule.dart';
 import 'package:srm/sign_in&up/sign_up.dart';
 
 void main() {
@@ -20,7 +26,7 @@ class MyApp extends StatelessWidget {
             ColorScheme.fromSeed(seedColor: Appcolors.primaryTextColor),
         useMaterial3: true,
       ),
-      home: const SignUp(),
+      home: const Homepage(),
     );
   }
 }
