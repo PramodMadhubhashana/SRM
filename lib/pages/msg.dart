@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:srm/color/appcolors.dart';
 import 'package:srm/pages/sidebar.dart';
@@ -18,60 +17,60 @@ class _MsgState extends State<Msg> {
         List<String>.generate(10, (index) => "Event ${index + 1}");
     return Scaffold(
       body: SafeArea(
-          child: Row(
-        children: [
-          if (screenSize.width > 600)
-            SizedBox(
-              height: screenSize.height,
-              width: 300,
-              child: const Sidebar(),
-            ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Messsage",
-                      style: TextStyle(
-                        fontSize: 20,
-                        color: Appcolors.primaryTextColor,
-                        fontWeight: FontWeight.w700,
+        child: Row(
+          children: [
+            if (screenSize.width > 600)
+              SizedBox(
+                height: screenSize.height,
+                width: 300,
+                child: const Sidebar(),
+              ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Messsage",
+                        style: TextStyle(
+                          fontSize: 20,
+                          color: Appcolors.primaryTextColor,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
-                    ),
-                    const SizedBox(
-                      height: 20,
-                    ),
-                    SizedBox(
-                      height: 200,
-                      width: 350,
-                      child: TextFormField(
-                        keyboardType: TextInputType.multiline,
-                        maxLines: null,
-                        minLines: 1,
-                        decoration: InputDecoration(
-                          labelText: "Message",
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                              color: Appcolors.primaryTextColor,
+                      const SizedBox(
+                        height: 20,
+                      ),
+                      SizedBox(
+                        height: 200,
+                        width: 350,
+                        child: TextFormField(
+                          keyboardType: TextInputType.multiline,
+                          maxLines: null,
+                          minLines: 1,
+                          decoration: InputDecoration(
+                            labelText: "Message",
+                            enabledBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                color: Appcolors.primaryTextColor,
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              Expanded(
-                child: SizedBox(
-                  height: 600,
-                  width: screenSize.width,
-                  child: Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: SizedBox(
+                Expanded(
+                  child: SizedBox(
+                    height: 600,
+                    width: screenSize.width - 300,
+                    child: Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: SizedBox(
                         height: screenSize.height,
                         child: ListView.builder(
                           itemCount: items.length,
@@ -121,14 +120,16 @@ class _MsgState extends State<Msg> {
                               ),
                             );
                           },
-                        )),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
-              ),
-            ],
-          )
-        ],
-      )),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
