@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:srm/color/appcolors.dart';
+import 'package:srm/pages/homepage.dart';
+import 'package:srm/service/service.dart';
+import 'package:srm/sign_in&up/sign_in.dart';
 import 'package:srm/term_conditions/terms_conditions.dart';
 
 class SignUp extends StatefulWidget {
@@ -11,6 +14,125 @@ class SignUp extends StatefulWidget {
 
 class _SignUpState extends State<SignUp> {
   final PageController _pageController = PageController();
+  // textfeild controllers
+  final TextEditingController _studentIdController = TextEditingController();
+  final TextEditingController _firstNameController = TextEditingController();
+  final TextEditingController _lastNameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _addressController = TextEditingController();
+  final TextEditingController _phoneNoController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  // authService object
+  final AuthService _authService = AuthService();
+
+  Future<void> studentData() async {
+    String stId = _studentIdController.text.trim();
+    String fNme = _firstNameController.text.trim();
+    String lNme = _lastNameController.text.trim();
+    String email = _emailController.text.trim();
+    String address = _addressController.text.trim();
+    String pNo = _phoneNoController.text.trim();
+    String psd = _passwordController.text.trim();
+
+    if (stId.isEmpty ||
+        fNme.isEmpty ||
+        lNme.isEmpty ||
+        email.isEmpty ||
+        address.isEmpty ||
+        pNo.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            "Please fill the all details",
+            style: TextStyle(
+              color: Colors.redAccent,
+              fontSize: 16,
+            ),
+          ),
+        ),
+      );
+      return;
+    }
+    if (_isChecked == false) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            "Please accept the Term and Conditions.",
+            style: TextStyle(
+              color: Colors.redAccent,
+              fontSize: 16,
+            ),
+          ),
+        ),
+      );
+      return;
+    }
+    showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
+        });
+
+    String result =
+        await _authService.addData(stId, fNme, lNme, email, address, pNo, psd);
+
+    Navigator.of(context).pop();
+
+    if (result == 'Success') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            "Register Succesfull.",
+            style: TextStyle(
+              color: Colors.greenAccent,
+              fontSize: 16,
+            ),
+          ),
+        ),
+      );
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => Homepage(
+            stId: stId,
+          ),
+        ),
+      );
+      return;
+    }
+    if (result == 'Fail') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            "Register Fail.",
+            style: TextStyle(
+              color: Colors.greenAccent,
+              fontSize: 16,
+            ),
+          ),
+        ),
+      );
+      return;
+    }
+    if (result == 'available') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            "Already Registered",
+            style: TextStyle(
+              color: Colors.redAccent,
+              fontSize: 16,
+            ),
+          ),
+        ),
+      );
+      return;
+    }
+  }
+
   int currentpage = 0;
   bool _isChecked = false;
   void nextpage() {
@@ -39,7 +161,6 @@ class _SignUpState extends State<SignUp> {
           child: SingleChildScrollView(
             child: Container(
               width: screenWidth > 600 ? 600 : 350,
-              height: 480,
               constraints: BoxConstraints(
                 maxWidth: screenWidth > 600 ? 600 : 350,
                 maxHeight: screenWidth > 600 ? 550 : 550,
@@ -97,6 +218,27 @@ class _SignUpState extends State<SignUp> {
                           width: 500,
                           height: 200,
                           fit: BoxFit.fitWidth,
+                        ),
+                        const SizedBox(
+                          height: 20,
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const SignIn(),
+                              ),
+                            );
+                          },
+                          child: Text(
+                            "Have an account, Login >>",
+                            style: TextStyle(
+                              color: Appcolors.primaryTextColor,
+                              fontWeight: FontWeight.w500,
+                              fontSize: 16,
+                            ),
+                          ),
                         ),
                         const SizedBox(
                           height: 20,
@@ -160,6 +302,7 @@ class _SignUpState extends State<SignUp> {
                           height: 25,
                         ),
                         TextField(
+                          controller: _studentIdController,
                           keyboardType: TextInputType.text,
                           decoration: InputDecoration(
                             labelText: "Enter Your Student ID",
@@ -174,6 +317,7 @@ class _SignUpState extends State<SignUp> {
                           height: 20,
                         ),
                         TextField(
+                          controller: _firstNameController,
                           keyboardType: TextInputType.text,
                           decoration: InputDecoration(
                             labelText: "Enter Your First Name",
@@ -188,6 +332,7 @@ class _SignUpState extends State<SignUp> {
                           height: 20,
                         ),
                         TextField(
+                          controller: _lastNameController,
                           keyboardType: TextInputType.text,
                           decoration: InputDecoration(
                             labelText: "Enter Your Last Name",
@@ -202,6 +347,7 @@ class _SignUpState extends State<SignUp> {
                           height: 20,
                         ),
                         TextField(
+                          controller: _emailController,
                           keyboardType: TextInputType.emailAddress,
                           decoration: InputDecoration(
                             labelText: "Enter Your Email",
@@ -306,7 +452,8 @@ class _SignUpState extends State<SignUp> {
                           height: 25,
                         ),
                         TextField(
-                          keyboardType: TextInputType.text,
+                          controller: _addressController,
+                          keyboardType: TextInputType.streetAddress,
                           decoration: InputDecoration(
                             labelText: "Enter Your Address",
                             enabledBorder: OutlineInputBorder(
@@ -320,9 +467,25 @@ class _SignUpState extends State<SignUp> {
                           height: 20,
                         ),
                         TextField(
+                          controller: _phoneNoController,
                           keyboardType: TextInputType.phone,
                           decoration: InputDecoration(
                             labelText: "Enter Your Phone No",
+                            enabledBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                color: Appcolors.primaryTextColor,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(
+                          height: 20,
+                        ),
+                        TextField(
+                          controller: _passwordController,
+                          keyboardType: TextInputType.visiblePassword,
+                          decoration: InputDecoration(
+                            labelText: "Enter Your Password",
                             enabledBorder: OutlineInputBorder(
                               borderSide: BorderSide(
                                 color: Appcolors.primaryTextColor,
@@ -371,7 +534,7 @@ class _SignUpState extends State<SignUp> {
                                     fontWeight: FontWeight.w600,
                                     color: Appcolors.primaryTextColor),
                               ),
-                            )
+                            ),
                           ],
                         ),
                         const SizedBox(
@@ -387,12 +550,12 @@ class _SignUpState extends State<SignUp> {
                           ).copyWith(
                             elevation: ButtonStyleButton.allOrNull(5),
                           ),
+                          onPressed: studentData,
                           child: const Text(
                             'Register',
                             style: TextStyle(
                                 fontSize: 18, fontWeight: FontWeight.w500),
                           ),
-                          onPressed: () {},
                         ),
                         const SizedBox(
                           height: 20,

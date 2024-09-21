@@ -3,7 +3,8 @@ import 'package:srm/color/appcolors.dart';
 import 'package:srm/pages/sidebar.dart';
 
 class BookEquiqment extends StatefulWidget {
-  const BookEquiqment({super.key});
+  final String id;
+  const BookEquiqment({super.key, required this.id});
 
   @override
   State<BookEquiqment> createState() => _BookEquiqmentState();

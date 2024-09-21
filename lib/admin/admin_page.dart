@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:srm/color/appcolors.dart';
 import 'package:srm/pages/msg.dart';
@@ -6,7 +5,8 @@ import 'package:srm/pages/notifications.dart';
 import 'package:srm/pages/sidebar.dart';
 
 class AdminPage extends StatefulWidget {
-  const AdminPage({super.key});
+  final String Id;
+  const AdminPage({super.key, required this.Id});
 
   @override
   State<AdminPage> createState() => _AdminPageState();
@@ -68,7 +68,7 @@ class _AdminPageState extends State<AdminPage> {
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) =>
-                                          const Notifications(),
+                                          const Notifications(id: '',),
                                     ),
                                   );
                                 },
@@ -85,7 +85,8 @@ class _AdminPageState extends State<AdminPage> {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => const Msg(),
+                                      builder: (context) =>
+                                          Msg(stId: widget.Id),
                                     ),
                                   );
                                 },

@@ -2,12 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:srm/color/appcolors.dart';
+import 'package:srm/pages/book_equiqment.dart';
+import 'package:srm/pages/book_lec_hall.dart';
 import 'package:srm/pages/msg.dart';
 import 'package:srm/pages/notifications.dart';
+import 'package:srm/pages/profile.dart';
 import 'package:srm/pages/sidebar.dart';
+import 'package:srm/pages/view_shedule.dart';
+import 'package:srm/service/service.dart';
+import 'package:intl/intl.dart';
 
 class Homepage extends StatefulWidget {
-  const Homepage({super.key});
+  final String stId;
+
+  const Homepage({super.key, required this.stId});
 
   @override
   State<Homepage> createState() => _HomepageState();
@@ -17,6 +25,7 @@ class _HomepageState extends State<Homepage> {
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
+    final AuthService authservice = AuthService();
 
     return Scaffold(
       body: SafeArea(
@@ -70,7 +79,7 @@ class _HomepageState extends State<Homepage> {
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) =>
-                                            const Notifications(),
+                                            Notifications(id: widget.stId),
                                       ),
                                     );
                                   },
@@ -87,7 +96,9 @@ class _HomepageState extends State<Homepage> {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => const Msg(),
+                                        builder: (context) => Msg(
+                                          stId: widget.stId,
+                                        ),
                                       ),
                                     );
                                   },
@@ -101,7 +112,13 @@ class _HomepageState extends State<Homepage> {
                                 ),
                                 GestureDetector(
                                   onTap: () {
-                                    print("eeee");
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            Profile(id: widget.stId),
+                                      ),
+                                    );
                                   },
                                   child: ClipOval(
                                     child: Image.network(
@@ -134,28 +151,65 @@ class _HomepageState extends State<Homepage> {
                             runSpacing: 15.0,
                             children: [
                               _homecart(
-                                "Available Lecture Halle",
-                                Icons.meeting_room_outlined,
-                                "10",
-                                "Book Halle >>",
-                              ),
+                                  "Available Lecture Halle",
+                                  Icons.meeting_room_outlined,
+                                  "10",
+                                  "Book Halle >>", () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        BookLecHall(id: widget.stId),
+                                  ),
+                                );
+                              }),
                               _homecart(
                                 "Available Resoureses",
                                 Icons.inventory_2_outlined,
                                 "10",
                                 "Request Resources >>",
+                                () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => BookLecHall(
+                                        id: widget.stId,
+                                      ),
+                                    ),
+                                  );
+                                },
                               ),
                               _homecart(
                                 "View Shedule",
                                 Icons.schedule_outlined,
                                 "10",
                                 "View Shedule",
+                                () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => ViewShedule(
+                                        id: widget.stId,
+                                      ),
+                                    ),
+                                  );
+                                },
                               ),
                               _homecart(
                                 "Equiqments",
                                 Icons.settings_input_component,
                                 "10",
                                 "Request Equiqments >>",
+                                () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => BookEquiqment(
+                                        id: widget.stId,
+                                      ),
+                                    ),
+                                  );
+                                },
                               ),
                             ],
                           ),
@@ -187,20 +241,48 @@ class _HomepageState extends State<Homepage> {
                               SizedBox(
                                 height: 500,
                                 width: screenSize.width,
-                                child: ListView.builder(
-                                  physics: const ScrollPhysics(
-                                    parent: ScrollPhysics(
-                                        parent: BouncingScrollPhysics()),
-                                  ),
-                                  itemCount: 20,
-                                  itemBuilder: (context, index) {
-                                    return const Card(
-                                      margin: EdgeInsets.all(10),
-                                      child: ListTile(
-                                        leading: Icon(Icons.notifications),
-                                        title: Text("pramod"),
-                                        subtitle: Text("Madhubhashana"),
+                                child: StreamBuilder(
+                                  stream: authservice.getActivity(widget.stId),
+                                  builder: (context, snapshot) {
+                                    if (!snapshot.hasData) {
+                                      return const Center(
+                                        child: CircularProgressIndicator(),
+                                      );
+                                    }
+                                    var items = snapshot.data!.docs;
+                                    return ListView.builder(
+                                      physics: const ScrollPhysics(
+                                        parent: ScrollPhysics(
+                                            parent: BouncingScrollPhysics()),
                                       ),
+                                      itemCount: items.length,
+                                      itemBuilder: (context, index) {
+                                        var item = items[index].data()
+                                            as Map<String, dynamic>;
+                                        int secound = item['DateTime'].seconds;
+                                        int nanoseconds =
+                                            item['DateTime'].nanoseconds;
+                                        DateTime dateTime =
+                                            DateTime.fromMillisecondsSinceEpoch(
+                                                secound * 1000);
+                                        dateTime = dateTime.add(
+                                          Duration(
+                                              microseconds:
+                                                  nanoseconds ~/ 1000),
+                                        );
+                                        String formatedDateTime =
+                                            DateFormat('yyyy-MM-dd HH:mm:ss')
+                                                .format(dateTime);
+                                        return Card(
+                                          margin: const EdgeInsets.all(10),
+                                          child: ListTile(
+                                            leading:
+                                                const Icon(Icons.notifications),
+                                            title: Text(item['Activity']),
+                                            subtitle: Text(formatedDateTime),
+                                          ),
+                                        );
+                                      },
                                     );
                                   },
                                 ),
@@ -221,7 +303,8 @@ class _HomepageState extends State<Homepage> {
   }
 }
 
-Widget _homecart(String cartLabel, IconData icn, String avbl, String btnlanle) {
+Widget _homecart(String cartLabel, IconData icn, String avbl, String btnlanle,
+    VoidCallback onpresh) {
   return Container(
     width: 300,
     height: 100,
@@ -272,18 +355,18 @@ Widget _homecart(String cartLabel, IconData icn, String avbl, String btnlanle) {
                 width: 10,
               ),
               TextButton(
-                onPressed: () {},
+                onPressed: onpresh,
                 style: TextButton.styleFrom(
                   padding: const EdgeInsets.symmetric(
                     vertical: 6,
                     horizontal: 14,
-                  ), // Padding
+                  ),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10), // Rounded corners
+                    borderRadius: BorderRadius.circular(10),
                     side: const BorderSide(
                       color: Colors.black,
                       width: 2,
-                    ), // Border color and width
+                    ),
                   ),
                 ),
                 child: Text(

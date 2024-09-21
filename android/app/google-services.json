@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "372156086540",
+    "project_id": "srm-d63d9",
+    "storage_bucket": "srm-d63d9.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:372156086540:android:ae2e83c5feb22ae8693129",
+        "android_client_info": {
+          "package_name": "com.example.srm"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB3TU2QBxZ6n6VWQl0PV0XCBedxUOvtLbY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

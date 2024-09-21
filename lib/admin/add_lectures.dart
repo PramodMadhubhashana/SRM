@@ -209,7 +209,7 @@ class _AddLecturesState extends State<AddLectures> {
                     ],
                   ),
                 ),
-                Expanded(
+                const Expanded(
                   child: Text("Lec Halls"),
                 ),
               ],

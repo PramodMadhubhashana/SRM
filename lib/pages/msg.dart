@@ -1,15 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:srm/color/appcolors.dart';
 import 'package:srm/pages/sidebar.dart';
+import 'package:srm/service/service.dart';
+import 'package:intl/intl.dart';
 
 class Msg extends StatefulWidget {
-  const Msg({super.key});
+  final String stId;
+  const Msg({super.key, required this.stId});
 
   @override
   State<Msg> createState() => _MsgState();
 }
 
 class _MsgState extends State<Msg> {
+  final TextEditingController _msgController = TextEditingController();
+  final AuthService _authService = AuthService();
+
+  Future<void> sendMsg() async {
+    try {
+      String msg = _msgController.text.trim();
+      await _authService.msg(msg, widget.stId);
+      _msgController.clear();
+    } catch (e) {
+      return;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
@@ -48,6 +64,7 @@ class _MsgState extends State<Msg> {
                         height: 200,
                         width: 350,
                         child: TextFormField(
+                          controller: _msgController,
                           keyboardType: TextInputType.multiline,
                           maxLines: null,
                           minLines: 1,
@@ -61,6 +78,26 @@ class _MsgState extends State<Msg> {
                           ),
                         ),
                       ),
+                      const SizedBox(
+                        height: 20,
+                      ),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          foregroundColor: Colors.white,
+                          backgroundColor: Appcolors.primaryTextColor,
+                        ).copyWith(
+                          elevation: ButtonStyleButton.allOrNull(5),
+                        ),
+                        onPressed: sendMsg,
+                        child: const Text(
+                          'Send',
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.w500),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -72,52 +109,80 @@ class _MsgState extends State<Msg> {
                       padding: const EdgeInsets.all(20.0),
                       child: SizedBox(
                         height: screenSize.height,
-                        child: ListView.builder(
-                          itemCount: items.length,
-                          itemBuilder: (context, index) {
-                            return Card(
-                              margin: const EdgeInsets.all(10),
-                              child: Container(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Row(
-                                  children: [
-                                    const Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text("admin"),
-                                          SizedBox(
-                                            height: 5,
+                        child: StreamBuilder(
+                          stream: _authService.getmsg(),
+                          builder: (context, snapshot) {
+                            if (!snapshot.hasData) {
+                              return const Center(
+                                child: CircularProgressIndicator(),
+                              );
+                            }
+                            var items = snapshot.data!.docs;
+
+                            return ListView.builder(
+                              itemCount: items.length,
+                              itemBuilder: (context, index) {
+                                var item =
+                                    items[index].data() as Map<String, dynamic>;
+                                int secound = item['DateTime'].seconds;
+                                int nanoseconds = item['DateTime'].nanoseconds;
+                                DateTime dateTime =
+                                    DateTime.fromMillisecondsSinceEpoch(
+                                        secound * 1000);
+                                dateTime = dateTime.add(
+                                  Duration(microseconds: nanoseconds ~/ 1000),
+                                );
+                                String formatedDateTime =
+                                    DateFormat('yyyy-MM-dd HH:mm:ss')
+                                        .format(dateTime);
+
+                                return Card(
+                                  margin: const EdgeInsets.all(10),
+                                  child: Container(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                  "${item['role']} : ${item['name']}"),
+                                              const SizedBox(
+                                                height: 5,
+                                              ),
+                                              Text(
+                                                "${item['message']} ",
+                                                style: const TextStyle(
+                                                    fontSize: 16,
+                                                    fontWeight:
+                                                        FontWeight.w700),
+                                              ),
+                                              const SizedBox(height: 5),
+                                              Text(formatedDateTime),
+                                            ],
                                           ),
-                                          Text(
-                                            "Add the new event in 2023  jjd  dhd dhhd dhd dhddh dhdg dhd hd ",
-                                            style: TextStyle(
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.w700),
-                                          ),
-                                          SizedBox(height: 5),
-                                          Text("Date: 2023/50/78"),
-                                        ],
-                                      ),
-                                    ),
-                                    const SizedBox(
-                                      width: 10,
-                                    ),
-                                    Align(
-                                      alignment: Alignment.centerRight,
-                                      child: IconButton(
-                                        onPressed: () {},
-                                        icon: const Icon(
-                                          Icons.close,
-                                          size: 15,
-                                          color: Colors.red,
                                         ),
-                                      ),
+                                        const SizedBox(
+                                          width: 10,
+                                        ),
+                                        Align(
+                                          alignment: Alignment.centerRight,
+                                          child: IconButton(
+                                            onPressed: () {},
+                                            icon: const Icon(
+                                              Icons.close,
+                                              size: 15,
+                                              color: Colors.red,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                  ],
-                                ),
-                              ),
+                                  ),
+                                );
+                              },
                             );
                           },
                         ),

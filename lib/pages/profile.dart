@@ -2,21 +2,125 @@ import 'package:flutter/material.dart';
 
 import 'package:srm/color/appcolors.dart';
 import 'package:srm/pages/sidebar.dart';
+import 'package:srm/service/service.dart';
 
 class Profile extends StatefulWidget {
-  const Profile({super.key});
+  final String id;
+  const Profile({super.key, required this.id});
 
   @override
   State<Profile> createState() => _ProfileState();
 }
 
-final TextEditingController _newNameController = TextEditingController();
+final TextEditingController _newFirstNameController = TextEditingController();
+final TextEditingController _newLastNameController = TextEditingController();
 final TextEditingController _newEmailController = TextEditingController();
 final TextEditingController _newLocationController = TextEditingController();
 final TextEditingController _newPhoneNoController = TextEditingController();
 
 class _ProfileState extends State<Profile> {
   final PageController _pageController = PageController();
+  final AuthService _authService = AuthService();
+  Map<String, dynamic>? userData;
+  bool isLoading = true;
+  bool isUpdating = false;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    var data = await _authService.getUsersData(widget.id);
+    if (data != null) {
+      setState(() {
+        userData = data.data() as Map<String, dynamic>;
+        _newFirstNameController.text = userData?['First Name'] ?? '';
+        _newLastNameController.text = userData?['Last Name'] ?? '';
+        _newEmailController.text = userData?['Email'] ?? '';
+        _newLocationController.text = userData?['Address'] ?? '';
+        _newPhoneNoController.text = userData?['Phone No'] ?? '';
+
+        isLoading = false;
+      });
+      return;
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          "Data Loading is Fail, Try again.",
+          style: TextStyle(color: Colors.redAccent, fontSize: 16),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _updateProfile() async {
+    setState(() {
+      isUpdating = true;
+    });
+    String result = await _authService.UpdateeProfile(
+      widget.id,
+      _newFirstNameController.text.trim(),
+      _newLastNameController.text.trim(),
+      _newEmailController.text.trim(),
+      _newLocationController.text.trim(),
+      _newPhoneNoController.text.trim(),
+    );
+
+    setState(() {
+      isUpdating = false;
+    });
+
+    if (result == 'Success') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            "Update Succesfull.",
+            style: TextStyle(
+              color: Colors.greenAccent,
+              fontSize: 16,
+            ),
+          ),
+        ),
+      );
+      _loadUserData();
+      _prevoiusPage();
+      return;
+    }
+    if (result == 'User not found') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            "User not found.",
+            style: TextStyle(
+              color: Colors.redAccent,
+              fontSize: 16,
+            ),
+          ),
+        ),
+      );
+
+      return;
+    }
+    if (result == 'Fail') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            "Update Fail.",
+            style: TextStyle(
+              color: Colors.redAccent,
+              fontSize: 16,
+            ),
+          ),
+        ),
+      );
+
+      return;
+    }
+  }
 
   get curve => null;
   void _nextPage() {
@@ -35,236 +139,275 @@ class _ProfileState extends State<Profile> {
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
     return Scaffold(
-      body: SafeArea(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (screenSize.width > 600)
-              SizedBox(
-                width: 300,
-                height: screenSize.height,
-                child: Sidebar(),
-              ),
-            Expanded(
-              child: SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 20, left: 20, right: 20),
-                  child: Column(
-                    children: [
-                      Row(
-                        children: [
-                          const SizedBox(
-                            width: 30,
-                          ),
-                          GestureDetector(
-                            onTap: () {
-                              print("eeee");
-                            },
-                            child: ClipOval(
-                              child: Image.network(
-                                "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSXNHDqxmIYwry1G1NuywsgYUaxJINUmx8trA&s",
-                                width: 100,
-                                height: 100,
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return const Icon(Icons.male);
-                                },
-                              ),
-                            ),
-                          ),
-                          const SizedBox(
-                            width: 30,
-                          ),
-                          const Column(
-                            children: [
-                              Text(
-                                "Hello, name",
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w700,
+      body: isLoading
+          ? const Center(
+              child: CircularProgressIndicator(),
+            )
+          : SafeArea(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (screenSize.width > 600)
+                    SizedBox(
+                      width: 300,
+                      height: screenSize.height,
+                      child: const Sidebar(),
+                    ),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: Padding(
+                        padding:
+                            const EdgeInsets.only(top: 20, left: 20, right: 20),
+                        child: Column(
+                          children: [
+                            Row(
+                              children: [
+                                const SizedBox(
+                                  width: 30,
                                 ),
-                              ),
-                              SizedBox(
-                                height: 10,
-                              ),
-                              Text(
-                                "Role : Student",
-                                style: TextStyle(fontSize: 16),
-                              ),
-                            ],
-                          )
-                        ],
-                      ),
-                      const SizedBox(
-                        height: 50,
-                      ),
-                      Wrap(
-                        crossAxisAlignment: WrapCrossAlignment.start,
-                        runAlignment: WrapAlignment.spaceBetween,
-                        spacing: 1.0,
-                        runSpacing: 1.0,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Container(
-                                height: 460,
-                                width: screenSize.width > 600
-                                    ? screenSize.width / 2
-                                    : screenSize.width * 0.8,
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(20),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.grey.withOpacity(0.5),
-                                      spreadRadius: 5,
-                                      blurRadius: 7,
-                                      offset: const Offset(0, 3),
+                                GestureDetector(
+                                  onTap: () {
+                                    print("eeee");
+                                  },
+                                  child: ClipOval(
+                                    child: Image.network(
+                                      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSXNHDqxmIYwry1G1NuywsgYUaxJINUmx8trA&s",
+                                      width: 100,
+                                      height: 100,
+                                      fit: BoxFit.cover,
+                                      errorBuilder:
+                                          (context, error, stackTrace) {
+                                        return const Icon(Icons.male);
+                                      },
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(
+                                  width: 30,
+                                ),
+                                Column(
+                                  children: [
+                                    Text(
+                                      "Hello, ${userData?['First Name'] ?? 'User'}",
+                                      style: const TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                    const SizedBox(
+                                      height: 10,
+                                    ),
+                                    Text(
+                                      "Role : ${userData?['role'] ?? 'User'}",
+                                      style: const TextStyle(fontSize: 16),
                                     ),
                                   ],
-                                ),
-                                child: PageView(
-                                  controller: _pageController,
-                                  physics: const NeverScrollableScrollPhysics(),
+                                )
+                              ],
+                            ),
+                            const SizedBox(
+                              height: 50,
+                            ),
+                            Wrap(
+                              crossAxisAlignment: WrapCrossAlignment.start,
+                              runAlignment: WrapAlignment.spaceBetween,
+                              spacing: 1.0,
+                              runSpacing: 1.0,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Padding(
-                                      padding: const EdgeInsets.all(20.0),
-                                      child: Column(
-                                        children: [
-                                          _profileDetails(
-                                            Icons.person,
-                                            "Your Full Name",
-                                            "Pramod",
-                                          ),
-                                          const SizedBox(
-                                            height: 20,
-                                          ),
-                                          _profileDetails(
-                                            Icons.card_membership_sharp,
-                                            "Your Student ID",
-                                            "ADDD364",
-                                          ),
-                                          const SizedBox(
-                                            height: 20,
-                                          ),
-                                          _profileDetails(
-                                            Icons.email,
-                                            "Your Email",
-                                            "email",
-                                          ),
-                                          const SizedBox(
-                                            height: 20,
-                                          ),
-                                          _profileDetails(
-                                            Icons.location_pin,
-                                            "Your Address",
-                                            "Address",
-                                          ),
-                                          const SizedBox(
-                                            height: 20,
-                                          ),
-                                          _profileDetails(
-                                            Icons.phone_sharp,
-                                            "Your Phone NO",
-                                            "0712839087",
-                                          ),
-                                          const SizedBox(
-                                            height: 20,
-                                          ),
-                                          ElevatedButton(
-                                            onPressed: () {
-                                              if (screenSize.width < 600) {
-                                                _showBottomPanel(context);
-                                              } else {
-                                                _nextPage();
-                                              }
-                                            },
-                                            child: Text(
-                                              "Edit",
-                                              style: TextStyle(
-                                                  fontSize: 22,
-                                                  fontWeight: FontWeight.w600,
-                                                  color: Appcolors
-                                                      .primaryTextColor),
-                                            ),
+                                    Container(
+                                      height: 460,
+                                      width: screenSize.width > 600
+                                          ? screenSize.width / 2
+                                          : screenSize.width * 0.8,
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(20),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.grey.withOpacity(0.5),
+                                            spreadRadius: 5,
+                                            blurRadius: 7,
+                                            offset: const Offset(0, 3),
                                           ),
                                         ],
                                       ),
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.all(20),
-                                      child: Column(
+                                      child: PageView(
+                                        controller: _pageController,
+                                        physics:
+                                            const NeverScrollableScrollPhysics(),
                                         children: [
-                                          _profileDetailsEdite(
-                                            Icons.person,
-                                            "Enter Your New Name",
-                                            _newNameController,
-                                          ),
-                                          const SizedBox(
-                                            height: 20,
-                                          ),
-                                          _profileDetailsEdite(
-                                            Icons.email,
-                                            "Enter Your New Email",
-                                            _newEmailController,
-                                          ),
-                                          const SizedBox(
-                                            height: 20,
-                                          ),
-                                          _profileDetailsEdite(
-                                            Icons.location_pin,
-                                            "Enter Your New Address",
-                                            _newLocationController,
-                                          ),
-                                          const SizedBox(
-                                            height: 20,
-                                          ),
-                                          _profileDetailsEdite(
-                                            Icons.phone,
-                                            "Enter Your New Phone No",
-                                            _newPhoneNoController,
-                                          ),
                                           Padding(
-                                            padding: const EdgeInsets.only(
-                                              left: 60,
-                                              right: 60,
-                                              top: 60,
-                                            ),
-                                            child: Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .spaceBetween,
+                                            padding: const EdgeInsets.all(20.0),
+                                            child: Column(
                                               children: [
-                                                ElevatedButton(
-                                                  onPressed: _prevoiusPage,
-                                                  style:
-                                                      ElevatedButton.styleFrom(
-                                                    backgroundColor:
-                                                        const Color.fromARGB(
-                                                            255, 255, 140, 140),
-                                                  ),
-                                                  child: const Text(
-                                                    "Cancel",
-                                                    style: TextStyle(
-                                                        fontSize: 20,
-                                                        fontWeight:
-                                                            FontWeight.w700,
-                                                        color: Colors.white),
-                                                  ),
+                                                _profileDetails(
+                                                  Icons.person,
+                                                  "Your Full Name",
+                                                  "${userData?['First Name'] ?? "First Name"} ${userData?['Last Name'] ?? 'Last Name'}",
+                                                ),
+                                                const SizedBox(
+                                                  height: 20,
+                                                ),
+                                                _profileDetails(
+                                                  Icons.card_membership_sharp,
+                                                  "Your Student ID",
+                                                  "${userData?['Id'] ?? "00000"}",
+                                                ),
+                                                const SizedBox(
+                                                  height: 20,
+                                                ),
+                                                _profileDetails(
+                                                  Icons.email,
+                                                  "email",
+                                                  "${userData?['Email'] ?? "example@gmail.com"}",
+                                                ),
+                                                const SizedBox(
+                                                  height: 20,
+                                                ),
+                                                _profileDetails(
+                                                  Icons.location_pin,
+                                                  "Address",
+                                                  "${userData?['Address'] ?? "...."}",
+                                                ),
+                                                const SizedBox(
+                                                  height: 20,
+                                                ),
+                                                _profileDetails(
+                                                  Icons.phone_sharp,
+                                                  "${userData?["Phone No"] ?? '....'}",
+                                                  "0712839087",
+                                                ),
+                                                const SizedBox(
+                                                  height: 20,
                                                 ),
                                                 ElevatedButton(
-                                                  onPressed: () {},
-                                                  style: ElevatedButton.styleFrom(
-                                                      backgroundColor: Appcolors
-                                                          .primaryTextColor),
-                                                  child: const Text(
-                                                    "Save",
+                                                  onPressed: () {
+                                                    if (screenSize.width <
+                                                        600) {
+                                                      _showBottomPanel(context);
+                                                    } else {
+                                                      _nextPage();
+                                                    }
+                                                  },
+                                                  child: Text(
+                                                    "Edit",
                                                     style: TextStyle(
-                                                        fontSize: 20,
+                                                        fontSize: 22,
                                                         fontWeight:
-                                                            FontWeight.w700,
-                                                        color: Colors.white),
+                                                            FontWeight.w600,
+                                                        color: Appcolors
+                                                            .primaryTextColor),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          Padding(
+                                            padding: const EdgeInsets.all(20),
+                                            child: Column(
+                                              children: [
+                                                _profileDetailsEdite(
+                                                  Icons.person,
+                                                  "Enter Your First Name",
+                                                  _newFirstNameController,
+                                                ),
+                                                const SizedBox(
+                                                  height: 20,
+                                                ),
+                                                _profileDetailsEdite(
+                                                  Icons.person,
+                                                  "Enter Your Last Name",
+                                                  _newLastNameController,
+                                                ),
+                                                const SizedBox(
+                                                  height: 20,
+                                                ),
+                                                _profileDetailsEdite(
+                                                  Icons.email,
+                                                  "Enter Your New Email",
+                                                  _newEmailController,
+                                                ),
+                                                const SizedBox(
+                                                  height: 20,
+                                                ),
+                                                _profileDetailsEdite(
+                                                  Icons.location_pin,
+                                                  "Enter Your New Address",
+                                                  _newLocationController,
+                                                ),
+                                                const SizedBox(
+                                                  height: 20,
+                                                ),
+                                                _profileDetailsEdite(
+                                                  Icons.phone,
+                                                  "Enter Your New Phone No",
+                                                  _newPhoneNoController,
+                                                ),
+                                                Padding(
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                    left: 60,
+                                                    right: 60,
+                                                    top: 60,
+                                                  ),
+                                                  child: Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .spaceBetween,
+                                                    children: [
+                                                      ElevatedButton(
+                                                        onPressed:
+                                                            _prevoiusPage,
+                                                        style: ElevatedButton
+                                                            .styleFrom(
+                                                          backgroundColor:
+                                                              const Color
+                                                                  .fromARGB(
+                                                                  255,
+                                                                  255,
+                                                                  140,
+                                                                  140),
+                                                        ),
+                                                        child: const Text(
+                                                          "Cancel",
+                                                          style: TextStyle(
+                                                              fontSize: 20,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w700,
+                                                              color:
+                                                                  Colors.white),
+                                                        ),
+                                                      ),
+                                                      ElevatedButton(
+                                                        onPressed:
+                                                            _updateProfile,
+                                                        style: ElevatedButton
+                                                            .styleFrom(
+                                                                backgroundColor:
+                                                                    Appcolors
+                                                                        .primaryTextColor),
+                                                        child: isUpdating
+                                                            ? const Center(
+                                                                child:
+                                                                    CircularProgressIndicator(),
+                                                              )
+                                                            : const Text(
+                                                                "Save",
+                                                                style: TextStyle(
+                                                                    fontSize:
+                                                                        20,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .w700,
+                                                                    color: Colors
+                                                                        .white),
+                                                              ),
+                                                      ),
+                                                    ],
                                                   ),
                                                 ),
                                               ],
@@ -275,19 +418,16 @@ class _ProfileState extends State<Profile> {
                                     ),
                                   ],
                                 ),
-                              ),
-                            ],
-                          ),
-                        ],
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
-                    ],
+                    ),
                   ),
-                ),
+                ],
               ),
             ),
-          ],
-        ),
-      ),
     );
   }
 }
@@ -311,8 +451,16 @@ void _showBottomPanel(BuildContext context) {
             children: [
               _profileDetailsEdite(
                 Icons.person,
-                "Enter Your New Name",
-                _newNameController,
+                "Enter Your First Name",
+                _newFirstNameController,
+              ),
+              const SizedBox(
+                height: 20,
+              ),
+              _profileDetailsEdite(
+                Icons.person,
+                "Enter Your Last Name",
+                _newLastNameController,
               ),
               const SizedBox(
                 height: 20,
@@ -342,16 +490,17 @@ void _showBottomPanel(BuildContext context) {
                 height: 20,
               ),
               ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  child: Text(
-                    "Save",
-                    style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w600,
-                        color: Appcolors.primaryTextColor),
-                  ))
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: Text(
+                  "Save",
+                  style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600,
+                      color: Appcolors.primaryTextColor),
+                ),
+              ),
             ],
           ),
         ),

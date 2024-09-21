@@ -208,7 +208,7 @@ class _AddRequiqmentState extends State<AddRequiqment> {
                     ],
                   ),
                 ),
-                Expanded(
+                const Expanded(
                   child: Text("Lec Halls"),
                 ),
               ],

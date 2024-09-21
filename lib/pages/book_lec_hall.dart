@@ -1,13 +1,18 @@
+import 'dart:async';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:srm/color/appcolors.dart';
 import 'package:srm/pages/sidebar.dart';
+import 'package:srm/service/service.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class BookLecHall extends StatefulWidget {
-  const BookLecHall({super.key});
+  final String id;
+  const BookLecHall({super.key, required this.id});
 
   @override
   State<BookLecHall> createState() => _BookLecHallState();
@@ -16,16 +21,53 @@ class BookLecHall extends StatefulWidget {
 enum BookingPeriod { morning, evening, fullDay }
 
 class _BookLecHallState extends State<BookLecHall> {
-  // late CalendarFormat _calendarFormat;
   DateTime _focusedDay = DateTime.now();
-  DateTime? _selectedDay;
+  late final Map<String, DateTime?> _selectedDay = {widget.id: null};
   late CalendarFormat _calendarFormat = CalendarFormat.month;
   BookingPeriod? _selectPeriod;
+  final AuthService _authService = AuthService();
+  String? _currentBookingPeriod;
+
+  List<DateTime> _bookedDates = [];
+
+  Future<void> fetchBookedDates() async {
+    List<DateTime> dates = await _authService.bookDate();
+    setState(() {
+      _bookedDates = dates; // Store fetched dates
+    });
+  }
+
+  List<Map<String, dynamic>> _bookedPeriod = [];
+
+  Future<void> fetchBookPeroid() async {
+    List<Map<String, dynamic>> bookings = await _authService.bookPeroid();
+
+    setState(() {
+      _bookedPeriod = bookings;
+    });
+    print(_bookedPeriod);
+  }
+
+  String? getBookingPeriod(DateTime day) {
+    for (var booking in _bookedPeriod) {
+      if (_isSameDate(day, booking['date'])) {
+        return booking['period'];
+      }
+    }
+    return null;
+  }
+
+  bool _isSameDate(DateTime date1, DateTime date2) {
+    return date1.year == date2.year &&
+        date1.month == date2.month &&
+        date1.day == date2.day;
+  }
 
   @override
   void initState() {
     super.initState();
-    _calendarFormat = CalendarFormat.month;
+    fetchBookedDates();
+    fetchBookPeroid();
   }
 
   @override
@@ -33,9 +75,8 @@ class _BookLecHallState extends State<BookLecHall> {
     final screenSize = MediaQuery.of(context).size;
 
     return Scaffold(
-      body: Scaffold(
-        body: SafeArea(
-            child: Row(
+      body: SafeArea(
+        child: Row(
           children: [
             if (screenSize.width > 600)
               SizedBox(
@@ -57,140 +98,181 @@ class _BookLecHallState extends State<BookLecHall> {
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-                    const SizedBox(
-                      height: 20,
-                    ),
+                    const SizedBox(height: 20),
                     Expanded(
-                      child: ListView.builder(
-                        itemCount: 10,
-                        itemBuilder: (context, index) {
-                          return Card(
-                            margin: const EdgeInsets.all(10),
-                            child: Container(
-                              padding: const EdgeInsets.all(20),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(20),
-                                color: Colors.white,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.grey.withOpacity(0.5),
-                                    blurRadius: 7,
-                                    spreadRadius: 5,
-                                    offset: const Offset(0, 8),
+                      child: StreamBuilder<List<Map<String, dynamic>>>(
+                        stream: _authService.getLectureHallDetails(),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const Center(
+                                child: CircularProgressIndicator());
+                          } else if (snapshot.hasError) {
+                            return const Center(
+                                child: Text("Error fetching data"));
+                          } else if (!snapshot.hasData ||
+                              snapshot.data!.isEmpty) {
+                            return const Center(child: Text("No Lec Halls"));
+                          }
+
+                          final lechalls = snapshot.data!;
+                          return ListView.builder(
+                            itemCount: lechalls.length,
+                            itemBuilder: (context, index) {
+                              final lecHall = lechalls[index];
+                              return Card(
+                                margin: const EdgeInsets.all(10),
+                                child: Container(
+                                  padding: const EdgeInsets.all(20),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(20),
+                                    color: Colors.white,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.grey.withOpacity(0.5),
+                                        blurRadius: 7,
+                                        spreadRadius: 5,
+                                        offset: const Offset(0, 8),
+                                      ),
+                                    ],
                                   ),
-                                ],
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    "Halle No ${index + 1}",
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: 18,
-                                    ),
-                                  ),
-                                  LayoutBuilder(
-                                    builder: (context, constraints) {
-                                      if (constraints.maxWidth < 600) {
-                                        return Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: _buildchildrens(),
-                                        );
-                                      } else {
-                                        return Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceAround,
-                                          children: _buildchildrens(),
-                                        );
-                                      }
-                                    },
-                                  ),
-                                  const Column(
+                                  child: Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        "No Of Chair : 542",
-                                        style: TextStyle(
+                                        "${lecHall['Halle Name'] ?? "Halle Name"}",
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w700,
                                           fontSize: 18,
-                                          fontWeight: FontWeight.w500,
                                         ),
                                       ),
-                                      SizedBox(
-                                        height: 10,
+                                      LayoutBuilder(
+                                        builder: (context, constraints) {
+                                          return constraints.maxWidth < 600
+                                              ? Column(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.center,
+                                                  children: _buildChildrens(),
+                                                )
+                                              : Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceAround,
+                                                  children: _buildChildrens(),
+                                                );
+                                        },
                                       ),
-                                      Text(
-                                        "No Of Desk :555 ",
-                                        style: TextStyle(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.w500),
+                                      Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            "No Of Chair: ${lecHall['chairs'] ?? "chairs"}",
+                                            style: const TextStyle(
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.w500),
+                                          ),
+                                          const SizedBox(height: 10),
+                                          Text(
+                                            "No Of Desk: ${lecHall['Desk'] ?? "desk"}",
+                                            style: const TextStyle(
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.w500),
+                                          ),
+                                          const SizedBox(height: 10),
+                                          Text(
+                                            "Capacity: ${lecHall['capacity'] ?? 'capacity'}",
+                                            style: const TextStyle(
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.w500),
+                                          ),
+                                          const SizedBox(height: 10),
+                                          Text(
+                                            "No Of Computers: ${lecHall['computers'] ?? 'com'}",
+                                            style: const TextStyle(
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.w500),
+                                          ),
+                                          const SizedBox(height: 10),
+                                          Text(
+                                            "Selected Booking Period: $_currentBookingPeriod" ?? "Date",
+                                            style: const TextStyle(
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.w500),
+                                          ),
+                                        ],
                                       ),
-                                      SizedBox(
-                                        height: 10,
+                                      LayoutBuilder(
+                                        builder: (context, constraints) {
+                                          return constraints.maxWidth > 600
+                                              ? Row(children: _radioListTile())
+                                              : Column(
+                                                  children: _radioListTile());
+                                        },
                                       ),
-                                      Text(
-                                        "Capacity :555 ",
-                                        style: TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.w500,
+                                      const SizedBox(height: 10),
+                                      ElevatedButton(
+                                        onPressed: () async {
+                                          final selectedDate =
+                                              _selectedDay[widget.id];
+
+                                          if (selectedDate != null) {
+                                            try {
+                                              final result = await _authService
+                                                  .booklechalls(
+                                                      lecHall['Halle Name'],
+                                                      selectedDate,
+                                                      _selectPeriod.toString(),
+                                                      widget.id);
+
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(
+                                                const SnackBar(
+                                                    content: Text(
+                                                        'Lecture hall booked successfully')),
+                                              );
+                                              await fetchBookedDates();
+
+                                              setState(() {
+                                                _selectedDay[widget.id] = null;
+                                                _selectPeriod =
+                                                    BookingPeriod.morning;
+                                              });
+                                            } catch (e) {
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(
+                                                SnackBar(
+                                                    content: Text(
+                                                        'Booking failed: $e')),
+                                              );
+                                            }
+                                          } else {
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(
+                                              const SnackBar(
+                                                  content: Text(
+                                                      'Please select a date and period')),
+                                            );
+                                          }
+                                        },
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor:
+                                              Appcolors.primaryTextColor,
                                         ),
-                                      ),
-                                      SizedBox(
-                                        height: 10,
-                                      ),
-                                      Text(
-                                        "No Of computers :555 ",
-                                        style: TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.w500,
+                                        child: const Text(
+                                          "Book",
+                                          style: TextStyle(
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.w700,
+                                              color: Colors.white),
                                         ),
-                                      ),
-                                      SizedBox(
-                                        height: 10,
-                                      ),
-                                      Text(
-                                        "Booking Period : 2024/03/08 full day ",
-                                        style: TextStyle(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.w500),
                                       ),
                                     ],
                                   ),
-                                  LayoutBuilder(
-                                    builder: (context, constraints) {
-                                      if (constraints.maxWidth > 600) {
-                                        return Row(
-                                          children: _radioListTile(),
-                                        );
-                                      } else {
-                                        return Column(
-                                          children: _radioListTile(),
-                                        );
-                                      }
-                                    },
-                                  ),
-                                  const SizedBox(
-                                    height: 10,
-                                  ),
-                                  ElevatedButton(
-                                    onPressed: () {},
-                                    style: ElevatedButton.styleFrom(
-                                        backgroundColor:
-                                            Appcolors.primaryTextColor),
-                                    child: const Text(
-                                      "Book",
-                                      style: TextStyle(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.w700,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
+                                ),
+                              );
+                            },
                           );
                         },
                       ),
@@ -200,7 +282,7 @@ class _BookLecHallState extends State<BookLecHall> {
               ),
             ),
           ],
-        )),
+        ),
       ),
     );
   }
@@ -215,7 +297,7 @@ class _BookLecHallState extends State<BookLecHall> {
           groupValue: _selectPeriod,
           onChanged: (BookingPeriod? value) {
             setState(() {
-              _selectPeriod = value;
+              _selectPeriod = value!;
             });
           },
         ),
@@ -228,7 +310,7 @@ class _BookLecHallState extends State<BookLecHall> {
           groupValue: _selectPeriod,
           onChanged: (BookingPeriod? value) {
             setState(() {
-              _selectPeriod = value;
+              _selectPeriod = value!;
             });
           },
         ),
@@ -241,7 +323,7 @@ class _BookLecHallState extends State<BookLecHall> {
           groupValue: _selectPeriod,
           onChanged: (BookingPeriod? value) {
             setState(() {
-              _selectPeriod = value;
+              _selectPeriod = value!;
             });
           },
         ),
@@ -249,7 +331,7 @@ class _BookLecHallState extends State<BookLecHall> {
     ];
   }
 
-  List<Widget> _buildchildrens() {
+  List<Widget> _buildChildrens() {
     return [
       Image.asset(
         "asset/images/wood.jpg",
@@ -268,15 +350,34 @@ class _BookLecHallState extends State<BookLecHall> {
           availableCalendarFormats: const {
             CalendarFormat.month: '1 Month',
           },
-          selectedDayPredicate: (day) {
-            return isSameDay(_selectedDay, day);
-          },
           onDaySelected: (selectedDay, focusedDay) {
             setState(() {
-              _selectedDay = selectedDay;
+              _selectedDay[widget.id] = selectedDay;
               _focusedDay = focusedDay;
+              _currentBookingPeriod =
+                  getBookingPeriod(selectedDay); // Get booking period
             });
           },
+          selectedDayPredicate: (day) {
+            return isSameDay(_selectedDay[widget.id], day);
+          },
+          calendarBuilders: CalendarBuilders(
+            defaultBuilder: (context, day, focusedDay) {
+              if (_bookedDates
+                  .any((bookedDate) => _isSameDate(bookedDate, day))) {
+                return Container(
+                  decoration: const BoxDecoration(
+                    color: Colors.redAccent,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                      child: Text(day.day.toString(),
+                          style: const TextStyle(color: Colors.white))),
+                );
+              }
+              return null;
+            },
+          ),
           onFormatChanged: (format) {
             setState(() {
               _calendarFormat = format;

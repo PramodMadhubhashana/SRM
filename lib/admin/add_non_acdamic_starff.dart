@@ -208,7 +208,7 @@ class _AddNonAcdamicStarffState extends State<AddNonAcdamicStarff> {
                     ],
                   ),
                 ),
-                Expanded(
+                const Expanded(
                   child: Text("Lec Halls"),
                 ),
               ],

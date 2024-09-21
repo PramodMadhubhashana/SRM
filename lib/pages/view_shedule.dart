@@ -1,11 +1,11 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:srm/color/appcolors.dart';
 import 'package:srm/pages/sidebar.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class ViewShedule extends StatefulWidget {
-  const ViewShedule({super.key});
+  final String id;
+  const ViewShedule({super.key, required this.id});
 
   @override
   State<ViewShedule> createState() => _ViewSheduleState();

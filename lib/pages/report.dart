@@ -17,7 +17,7 @@ class Report extends StatefulWidget {
 
 class _ReportState extends State<Report> {
   String? _selectedItem;
-  List<String> _dropdownItems = ['Item 1', 'Item 2', 'Item 3', 'Item 4'];
+  final List<String> _dropdownItems = ['Item 1', 'Item 2', 'Item 3', 'Item 4'];
 
   File? _image;
   Uint8List? _webImage;
