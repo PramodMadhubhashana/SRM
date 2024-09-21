@@ -1,11 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:srm/admin/admin_page.dart';
 import 'package:srm/sign_in&up/sign_in.dart';
 import 'package:srm/color/appcolors.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();  
+  WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: const FirebaseOptions(
       apiKey: "AIzaSyBWa0VsMo1xkTqbF8S6_TSR2Z0CPsGTU7c",
@@ -32,7 +33,7 @@ class MyApp extends StatelessWidget {
             ColorScheme.fromSeed(seedColor: Appcolors.primaryTextColor),
         useMaterial3: true,
       ),
-      home: const SignIn(),
+      home: const AdminPage(Id: "A123"),
     );
   }
 }

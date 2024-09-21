@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:srm/admin/equiqment.dart';
+import 'package:srm/admin/lec_halle.dart';
 import 'package:srm/color/appcolors.dart';
+import 'package:srm/pages/book_lec_hall.dart';
 import 'package:srm/pages/msg.dart';
 import 'package:srm/pages/notifications.dart';
+import 'package:srm/pages/profile.dart';
 import 'package:srm/pages/sidebar.dart';
+import 'package:srm/pages/view_shedule.dart';
+import 'package:srm/service/service.dart';
 
 class AdminPage extends StatefulWidget {
   final String Id;
@@ -13,6 +19,21 @@ class AdminPage extends StatefulWidget {
 }
 
 class _AdminPageState extends State<AdminPage> {
+  final AuthService _authService = AuthService();
+  int stdCount = 0;
+  Future<void> studentCount() async {
+    try {
+      final int count = await _authService.studentCount();
+      setState(() {
+        stdCount = count;
+      });
+    } catch (e) {
+      return;
+    }
+  }
+
+  @overide
+
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
@@ -67,8 +88,9 @@ class _AdminPageState extends State<AdminPage> {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) =>
-                                          const Notifications(id: '',),
+                                      builder: (context) => const Notifications(
+                                        id: '',
+                                      ),
                                     ),
                                   );
                                 },
@@ -100,7 +122,13 @@ class _AdminPageState extends State<AdminPage> {
                               ),
                               GestureDetector(
                                 onTap: () {
-                                  print("eeee");
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          Profile(id: widget.Id),
+                                    ),
+                                  );
                                 },
                                 child: ClipOval(
                                   child: Image.network(
@@ -130,41 +158,76 @@ class _AdminPageState extends State<AdminPage> {
                           spacing: 15.0,
                           runSpacing: 15.0,
                           children: [
+                            _homecart("Available Lecture Halle",
+                                Icons.meeting_room_outlined, "10", () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => LecHalle(id: widget.Id),
+                                ),
+                              );
+                            }),
+                            _homecart("Available Resoureses",
+                                Icons.inventory_2_outlined, "10", () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      Equiqment(id: widget.Id),
+                                ),
+                              );
+                            }),
                             _homecart(
-                              "Available Lecture Halle",
-                              Icons.meeting_room_outlined,
-                              "10",
-                            ),
-                            _homecart(
-                              "Available Resoureses",
-                              Icons.inventory_2_outlined,
-                              "10",
-                            ),
-                            _homecart(
-                              "View Shedule",
-                              Icons.schedule_outlined,
-                              "10",
-                            ),
-                            _homecart(
-                              "Equiqments",
-                              Icons.settings_input_component,
-                              "10",
-                            ),
-                            _homecart(
-                              "Student Count",
-                              Icons.person,
-                              "1200",
-                            ),
-                            _homecart(
-                              "Lectures Count",
-                              Icons.person_4_outlined,
-                              "1200",
-                            ),
-                            _homecart(
-                              "Non Starff Count",
-                              Icons.person_3_outlined,
-                              "1200",
-                            ),
+                                "View Shedule", Icons.schedule_outlined, "10",
+                                () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      ViewShedule(id: widget.Id),
+                                ),
+                              );
+                            }),
+                            _homecart("Equiqments",
+                                Icons.settings_input_component, "10", () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      Equiqment(id: widget.Id),
+                                ),
+                              );
+                            }),
+                            _homecart("Student Count", Icons.person, "1200",
+                                () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      Equiqment(id: widget.Id),
+                                ),
+                              );
+                            }),
+                            _homecart("Lectures Count", Icons.person_4_outlined,
+                                "1200", () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      Equiqment(id: widget.Id),
+                                ),
+                              );
+                            }),
+                            _homecart("Non Starff Count",
+                                Icons.person_3_outlined, "1200", () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      Equiqment(id: widget.Id),
+                                ),
+                              );
+                            }),
                           ],
                         ),
                         Column(
@@ -232,6 +295,7 @@ Widget _homecart(
   String cartLabel,
   IconData icn,
   String avbl,
+  VoidCallback onpresh,
 ) {
   return Container(
     width: 300,
@@ -283,7 +347,7 @@ Widget _homecart(
                 width: 10,
               ),
               TextButton(
-                onPressed: () {},
+                onPressed: onpresh,
                 style: TextButton.styleFrom(
                   padding: const EdgeInsets.symmetric(
                     vertical: 6,

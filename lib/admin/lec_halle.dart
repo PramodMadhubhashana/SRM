@@ -1,26 +1,24 @@
 import 'dart:async';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:srm/color/appcolors.dart';
+import 'package:srm/pages/book_equiqment.dart';
 import 'package:srm/pages/sidebar.dart';
 import 'package:srm/service/service.dart';
 import 'package:table_calendar/table_calendar.dart';
 
-class BookLecHall extends StatefulWidget {
+class LecHalle extends StatefulWidget {
   final String id;
-  const BookLecHall({super.key, required this.id});
+  const LecHalle({super.key, required this.id});
 
   @override
-  State<BookLecHall> createState() => _BookLecHallState();
+  State<LecHalle> createState() => _LecHalleState();
 }
 
-enum BookingPeriod { morning, evening, fullDay }
-
-class _BookLecHallState extends State<BookLecHall> {
+class _LecHalleState extends State<LecHalle> {
   DateTime _focusedDay = DateTime.now();
   late final Map<String, DateTime?> _selectedDay = {widget.id: null};
   late CalendarFormat _calendarFormat = CalendarFormat.month;

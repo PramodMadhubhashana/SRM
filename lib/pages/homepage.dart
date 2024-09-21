@@ -22,10 +22,53 @@ class Homepage extends StatefulWidget {
 }
 
 class _HomepageState extends State<Homepage> {
+  final AuthService _authservice = AuthService();
+  int hallCount = 0;
+  int schlCount = 0;
+  int eqmttCount = 0;
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    hallcount();
+    equiqmentCount();
+    scheduleCount();
+  }
+
+  Future<void> hallcount() async {
+    try {
+      final int cnt = await _authservice.lecHalleCount();
+      setState(() {
+        hallCount = cnt;
+      });
+    } catch (e) {
+      return;
+    }
+  }
+
+  Future<void> equiqmentCount() async {
+    try {
+      final int count = await _authservice.equiqmentCount();
+      setState(() {
+        eqmttCount = count;
+      });
+    } catch (e) {}
+  }
+
+  Future<void> scheduleCount() async {
+    try {
+      final int shdlcnt = await _authservice.scheduleCount();
+      setState(() {
+        schlCount = shdlcnt;
+      });
+    } catch (e) {
+      return;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
-    final AuthService authservice = AuthService();
 
     return Scaffold(
       body: SafeArea(
@@ -153,7 +196,7 @@ class _HomepageState extends State<Homepage> {
                               _homecart(
                                   "Available Lecture Halle",
                                   Icons.meeting_room_outlined,
-                                  "10",
+                                  "$hallCount",
                                   "Book Halle >>", () {
                                 Navigator.push(
                                   context,
@@ -182,7 +225,7 @@ class _HomepageState extends State<Homepage> {
                               _homecart(
                                 "View Shedule",
                                 Icons.schedule_outlined,
-                                "10",
+                                "$schlCount",
                                 "View Shedule",
                                 () {
                                   Navigator.push(
@@ -198,7 +241,7 @@ class _HomepageState extends State<Homepage> {
                               _homecart(
                                 "Equiqments",
                                 Icons.settings_input_component,
-                                "10",
+                                "$eqmttCount",
                                 "Request Equiqments >>",
                                 () {
                                   Navigator.push(
@@ -242,7 +285,7 @@ class _HomepageState extends State<Homepage> {
                                 height: 500,
                                 width: screenSize.width,
                                 child: StreamBuilder(
-                                  stream: authservice.getActivity(widget.stId),
+                                  stream: _authservice.getActivity(widget.stId),
                                   builder: (context, snapshot) {
                                     if (!snapshot.hasData) {
                                       return const Center(

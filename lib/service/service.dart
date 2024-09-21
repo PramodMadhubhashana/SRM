@@ -5,17 +5,26 @@ class AuthService {
   CollectionReference users = FirebaseFirestore.instance.collection('users');
   CollectionReference message =
       FirebaseFirestore.instance.collection("Message");
+
   CollectionReference activity =
       FirebaseFirestore.instance.collection("Activity");
 
   CollectionReference notifications =
       FirebaseFirestore.instance.collection("Notifications");
+
   CollectionReference hallDetails =
       FirebaseFirestore.instance.collection("Lec Halle");
 
   CollectionReference bookLecHalle =
-      FirebaseFirestore.instance.collection("Book Lec halle");
+      FirebaseFirestore.instance.collection("BookLecHalle");
 
+  CollectionReference Schedule =
+      FirebaseFirestore.instance.collection("Schedule");
+
+  CollectionReference equiqments =
+      FirebaseFirestore.instance.collection("Equiqment List");
+
+// Sign in
   Future<Map<String, dynamic>> signInWithIdAndPassword(
       String userId, String psd) async {
     try {
@@ -50,6 +59,7 @@ class AuthService {
     }
   }
 
+// Add the users Data
   Future<String> addData(String stId, String fNme, String lNme, String email,
       String address, String pNo, String psd) async {
     try {
@@ -76,6 +86,7 @@ class AuthService {
     }
   }
 
+// Update User Profiile
   Future<String> UpdateeProfile(String id, String fNme, String lNme,
       String email, String address, String pNo) async {
     try {
@@ -98,6 +109,7 @@ class AuthService {
     }
   }
 
+// Return user Details
   Future<DocumentSnapshot?> getUsersData(String userId) async {
     try {
       DocumentSnapshot snapshot = await users.doc(userId).get();
@@ -110,6 +122,7 @@ class AuthService {
     }
   }
 
+// Add Message
   Future<void> msg(String msg, String stId) async {
     try {
       DocumentSnapshot? userData = await getUsersData(stId);
@@ -129,14 +142,17 @@ class AuthService {
     }
   }
 
+// Return Message
   Stream<QuerySnapshot> getmsg() {
     return message.orderBy('DateTime', descending: true).snapshots();
   }
 
+// Return Activity
   Stream<QuerySnapshot> getActivity(String id) {
     return activity.where('userId', isEqualTo: id).snapshots();
   }
 
+// Add Notifications
   Future<void> addNotification(String userId, String title, String body) async {
     final dateTime = DateTime.now().toIso8601String();
 
@@ -168,10 +184,12 @@ class AuthService {
     });
   }
 
+// return Notifications
   Stream<QuerySnapshot> getNotifications(String id) {
     return activity.where('userId', isEqualTo: id).snapshots();
   }
 
+// return  Lecture Halle Details
   Stream<List<Map<String, dynamic>>> getLectureHallDetails() {
     return hallDetails.snapshots().map((snapshot) {
       final data = snapshot.docs
@@ -181,6 +199,7 @@ class AuthService {
       return data;
     });
   }
+  // Boook Lecture hallle
 
   Future<String> booklechalls(
       String HalleName, DateTime date, String period, String id) async {
@@ -191,11 +210,9 @@ class AuthService {
           .where('id', isEqualTo: id)
           .where('period', isEqualTo: period)
           .get();
-
       if (querySnapshot.docs.isNotEmpty) {
-        return "The hall is already booked for this date and period.";
+        return "booking found";
       }
-
       await bookLecHalle.add({
         'hallId': HalleName,
         'date': date,
@@ -211,6 +228,7 @@ class AuthService {
     }
   }
 
+  // return Book date
   Future<List<DateTime>> bookDate() async {
     List<DateTime> bookingDate = [];
     QuerySnapshot querySnapshot = await bookLecHalle.get();
@@ -223,18 +241,109 @@ class AuthService {
     return bookingDate;
   }
 
+  // return Booking Peroid
   Future<List<Map<String, dynamic>>> bookPeroid() async {
     try {
       QuerySnapshot snapshot = await bookLecHalle.get();
-      return snapshot.docs.map((doc) {
+      List<Map<String, dynamic>> bookings = snapshot.docs.map((doc) {
         return {
           'date': (doc['date'] as Timestamp).toDate(),
           'period': doc['period'],
         };
       }).toList();
+
+      return bookings;
     } catch (e) {
-      print('Error fetching bookings: $e');
       return [];
+    }
+  }
+
+  Stream<QuerySnapshot> getShedule(String id) {
+    return Schedule.where('Id', isEqualTo: id).snapshots();
+  }
+
+  // Add Schedule
+  Future<String> AddScedule(String id, String title, String date) async {
+    try {
+      await Schedule.add({
+        'Id': id,
+        'title': title,
+        'Date': date,
+      });
+
+      return "Succesful";
+    } catch (e) {
+      return "Error";
+    }
+  }
+
+  // Delete Schedule
+  Future<String> deleteSchedule(String id) async {
+    try {
+      final result = await Schedule.doc(id).delete();
+      print(id);
+      return "Succesfull";
+    } catch (e) {
+      return 'Error';
+    }
+  }
+
+  // return Equiqment Details
+  Stream<List<Map<String, dynamic>>> getEquiqmentDetails() {
+    return equiqments.snapshots().map((snapshot) {
+      final data = snapshot.docs
+          .map((doc) => doc.data() as Map<String, dynamic>)
+          .toList();
+
+      return data;
+    });
+  }
+
+  // get Lec hall Count
+  Future<int> lecHalleCount() async {
+    try {
+      QuerySnapshot querySnapshot = await hallDetails.get();
+      int count = querySnapshot.size;
+
+      return count;
+    } catch (e) {
+      return 0;
+    }
+  }
+
+  // return Schedule count
+  Future<int> scheduleCount() async {
+    try {
+      QuerySnapshot querySnapshot = await Schedule.get();
+      int count = querySnapshot.size;
+
+      return count;
+    } catch (e) {
+      return 0;
+    }
+  }
+
+  // return equiqment count
+  Future<int> equiqmentCount() async {
+    try {
+      QuerySnapshot querySnapshot = await equiqments.get();
+      int count = querySnapshot.size;
+
+      return count;
+    } catch (e) {
+      return 0;
+    }
+  }
+  // return student count
+
+  Future<int> studentCount() async {
+    try {
+      QuerySnapshot snapshot =
+          await users.where('role', isEqualTo: 'Student').get();
+      int count = snapshot.size;
+      return count;
+    } catch (e) {
+      return 0;
     }
   }
 }

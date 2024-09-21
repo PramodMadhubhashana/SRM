@@ -1,19 +1,19 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:srm/color/appcolors.dart';
+import 'package:srm/pages/book_equiqment.dart';
 import 'package:srm/pages/sidebar.dart';
 import 'package:srm/service/service.dart';
 
-class BookEquiqment extends StatefulWidget {
+class Equiqment extends StatefulWidget {
   final String id;
-  const BookEquiqment({super.key, required this.id});
+  const Equiqment({super.key, required this.id});
 
   @override
-  State<BookEquiqment> createState() => _BookEquiqmentState();
+  State<Equiqment> createState() => _EquiqmentState();
 }
 
-enum BookingPeriod { morning, evening, fullDay }
-
-class _BookEquiqmentState extends State<BookEquiqment> {
+class _EquiqmentState extends State<Equiqment> {
   BookingPeriod? _selectPeriod;
   final AuthService _authService = AuthService();
   @override
