@@ -23,6 +23,7 @@ class AuthService {
 
   CollectionReference equiqments =
       FirebaseFirestore.instance.collection("Equiqment List");
+  CollectionReference report = FirebaseFirestore.instance.collection("Report");
 
 // Sign in
   Future<Map<String, dynamic>> signInWithIdAndPassword(
@@ -61,7 +62,7 @@ class AuthService {
 
 // Add the users Data
   Future<String> addData(String stId, String fNme, String lNme, String email,
-      String address, String pNo, String psd) async {
+      String address, String pNo, String psd, String role) async {
     try {
       DocumentSnapshot documentSnapshot = await users.doc(stId).get();
       if (documentSnapshot.exists) {
@@ -76,7 +77,7 @@ class AuthService {
           'Address': address,
           'Phone No': pNo,
           'Password': psd,
-          'role': 'Student',
+          'role': role,
           'Register Date': DateTime.now(),
         },
       );
@@ -345,5 +346,86 @@ class AuthService {
     } catch (e) {
       return 0;
     }
+  }
+
+  // return lecture Count
+  Future<int> lecturetCount() async {
+    try {
+      QuerySnapshot snapshot =
+          await users.where('role', isEqualTo: 'Lecture').get();
+      int count = snapshot.size;
+      return count;
+    } catch (e) {
+      return 0;
+    }
+  }
+  // non staff count
+
+  Future<int> staffCount() async {
+    try {
+      QuerySnapshot snapshot =
+          await users.where('role', isEqualTo: 'Non-Staff').get();
+      int count = snapshot.size;
+      return count;
+    } catch (e) {
+      return 0;
+    }
+  }
+
+// add the lecture hall
+
+  Future<String> addHalle(String name, String computer, String chairs,
+      String desk, String capacity) async {
+    try {
+      await hallDetails.add(
+        {
+          'Halle Name': name,
+          'capacity': capacity,
+          'chairs': chairs,
+          'computers': computer,
+          'Desk': desk,
+        },
+      );
+      return 'Success';
+    } catch (e) {
+      return 'Fail';
+    }
+  }
+
+  // add equiqment
+  Future<String> addEquiqment(String name, String qty) async {
+    try {
+      await equiqments.add(
+        {
+          'Name': name,
+          'qty': qty,
+        },
+      );
+      return 'Success';
+    } catch (e) {
+      return 'Fail';
+    }
+  }
+  // Add Report
+
+  Future<String> addReport(String category, String msg, String id) async {
+    try {
+      await report.add(
+        {
+          'Category': category,
+          'Message': msg,
+          'Id': id,
+          'Date': DateTime.now(),
+        },
+      );
+      return 'Success';
+    } catch (e) {
+      return 'Fail';
+    }
+  }
+
+// return reports
+  Stream<QuerySnapshot> getReports() {
+    return report.snapshots();
   }
 }

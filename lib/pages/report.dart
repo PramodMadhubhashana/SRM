@@ -7,9 +7,11 @@ import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:srm/color/appcolors.dart';
 import 'package:srm/pages/sidebar.dart';
+import 'package:srm/service/service.dart';
 
 class Report extends StatefulWidget {
-  const Report({super.key});
+  final String id;
+  const Report({super.key, required this.id});
 
   @override
   State<Report> createState() => _ReportState();
@@ -18,10 +20,74 @@ class Report extends StatefulWidget {
 class _ReportState extends State<Report> {
   String? _selectedItem;
   final List<String> _dropdownItems = ['Item 1', 'Item 2', 'Item 3', 'Item 4'];
-
+  final AuthService _authService = AuthService();
   File? _image;
   Uint8List? _webImage;
   final ImagePicker _imagePicker = ImagePicker();
+  final TextEditingController _messageControlller = TextEditingController();
+
+  Future<void> _addReport() async {
+    String msg = _messageControlller.text.trim();
+
+    if (msg.isEmpty || _selectedItem == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            "Please add the message and select the category",
+            style: TextStyle(
+              color: Colors.redAccent,
+              fontSize: 16,
+            ),
+          ),
+        ),
+      );
+      return;
+    }
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return const Center(
+          child: CircularProgressIndicator(),
+        );
+      },
+    );
+
+    String result =
+        await _authService.addReport(_selectedItem.toString(), msg, widget.id);
+
+    Navigator.of(context).pop();
+    if (result == 'Success') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            "Add successfull",
+            style: TextStyle(
+              color: Colors.greenAccent,
+              fontSize: 16,
+            ),
+          ),
+        ),
+      );
+
+      return;
+    }
+
+    if (result == 'Fail') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            "Register Fail.",
+            style: TextStyle(
+              color: Colors.greenAccent,
+              fontSize: 16,
+            ),
+          ),
+        ),
+      );
+      return;
+    }
+  }
 
   Future<void> _pickImage() async {
     if (kIsWeb) {
@@ -132,6 +198,7 @@ class _ReportState extends State<Report> {
                         height: 200,
                         width: 350,
                         child: TextFormField(
+                          controller: _messageControlller,
                           keyboardType: TextInputType.multiline,
                           maxLines: null,
                           minLines: 1,
@@ -184,7 +251,7 @@ class _ReportState extends State<Report> {
                         height: 20,
                       ),
                       ElevatedButton(
-                        onPressed: () {},
+                        onPressed: _addReport,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Appcolors.primaryTextColor,
                         ),

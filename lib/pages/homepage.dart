@@ -52,7 +52,9 @@ class _HomepageState extends State<Homepage> {
       setState(() {
         eqmttCount = count;
       });
-    } catch (e) {}
+    } catch (e) { 
+      return;
+    }
   }
 
   Future<void> scheduleCount() async {

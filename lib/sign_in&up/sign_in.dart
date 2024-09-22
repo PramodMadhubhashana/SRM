@@ -159,7 +159,7 @@ class _SignInState extends State<SignIn> {
                                   controller: _idController,
                                   keyboardType: TextInputType.text,
                                   decoration: InputDecoration(
-                                    labelText: "Enter Your ID",
+                                    labelText: "Your ID",
                                     enabledBorder: OutlineInputBorder(
                                       borderSide: BorderSide(
                                         color: Appcolors.primaryTextColor,
@@ -177,7 +177,7 @@ class _SignInState extends State<SignIn> {
                                   controller: _passwordController,
                                   keyboardType: TextInputType.text,
                                   decoration: InputDecoration(
-                                    labelText: "Enter Your Password",
+                                    labelText: "Password",
                                     enabledBorder: OutlineInputBorder(
                                       borderSide: BorderSide(
                                         color: Appcolors.primaryTextColor,

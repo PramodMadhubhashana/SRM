@@ -2,13 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:srm/admin/equiqment.dart';
 import 'package:srm/admin/lec_halle.dart';
 import 'package:srm/color/appcolors.dart';
-import 'package:srm/pages/book_lec_hall.dart';
 import 'package:srm/pages/msg.dart';
 import 'package:srm/pages/notifications.dart';
 import 'package:srm/pages/profile.dart';
 import 'package:srm/pages/sidebar.dart';
 import 'package:srm/pages/view_shedule.dart';
 import 'package:srm/service/service.dart';
+// ignore: depend_on_referenced_packages
+import 'package:intl/intl.dart';
 
 class AdminPage extends StatefulWidget {
   final String Id;
@@ -19,20 +20,41 @@ class AdminPage extends StatefulWidget {
 }
 
 class _AdminPageState extends State<AdminPage> {
-  final AuthService _authService = AuthService();
+  final AuthService _authservice = AuthService();
   int stdCount = 0;
-  Future<void> studentCount() async {
+  int hallCount = 0;
+  int eqmttCount = 0;
+  int schlCount = 0;
+  int lectureCount = 0;
+  int nonStarffCount = 0;
+
+  Future<void> getCounts() async {
     try {
-      final int count = await _authService.studentCount();
+      final int count = await _authservice.studentCount();
+      final int cnt = await _authservice.lecHalleCount();
+      final int counteqm = await _authservice.equiqmentCount();
+      final int shdlcnt = await _authservice.scheduleCount();
+      final int lec = await _authservice.lecturetCount();
+      final int staff = await _authservice.staffCount();
       setState(() {
         stdCount = count;
+        hallCount = cnt;
+        eqmttCount = counteqm;
+        schlCount = shdlcnt;
+        lectureCount = lec;
+        nonStarffCount = staff;
       });
     } catch (e) {
       return;
     }
   }
 
-  @overide
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    getCounts();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -159,7 +181,7 @@ class _AdminPageState extends State<AdminPage> {
                           runSpacing: 15.0,
                           children: [
                             _homecart("Available Lecture Halle",
-                                Icons.meeting_room_outlined, "10", () {
+                                Icons.meeting_room_outlined, "$hallCount", () {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
@@ -177,9 +199,8 @@ class _AdminPageState extends State<AdminPage> {
                                 ),
                               );
                             }),
-                            _homecart(
-                                "View Shedule", Icons.schedule_outlined, "10",
-                                () {
+                            _homecart("View Shedule", Icons.schedule_outlined,
+                                "$schlCount", () {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
@@ -188,8 +209,10 @@ class _AdminPageState extends State<AdminPage> {
                                 ),
                               );
                             }),
-                            _homecart("Equiqments",
-                                Icons.settings_input_component, "10", () {
+                            _homecart(
+                                "Equiqments",
+                                Icons.settings_input_component,
+                                "$eqmttCount", () {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
@@ -198,8 +221,8 @@ class _AdminPageState extends State<AdminPage> {
                                 ),
                               );
                             }),
-                            _homecart("Student Count", Icons.person, "1200",
-                                () {
+                            _homecart(
+                                "Student Count", Icons.person, "$stdCount", () {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
@@ -209,7 +232,7 @@ class _AdminPageState extends State<AdminPage> {
                               );
                             }),
                             _homecart("Lectures Count", Icons.person_4_outlined,
-                                "1200", () {
+                                "$lectureCount", () {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
@@ -219,7 +242,7 @@ class _AdminPageState extends State<AdminPage> {
                               );
                             }),
                             _homecart("Non Starff Count",
-                                Icons.person_3_outlined, "1200", () {
+                                Icons.person_3_outlined, "$nonStarffCount", () {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
@@ -258,20 +281,47 @@ class _AdminPageState extends State<AdminPage> {
                             SizedBox(
                               height: 500,
                               width: screenSize.width,
-                              child: ListView.builder(
-                                physics: const ScrollPhysics(
-                                  parent: ScrollPhysics(
-                                      parent: BouncingScrollPhysics()),
-                                ),
-                                itemCount: 20,
-                                itemBuilder: (context, index) {
-                                  return const Card(
-                                    margin: EdgeInsets.all(10),
-                                    child: ListTile(
-                                      leading: Icon(Icons.notifications),
-                                      title: Text("pramod"),
-                                      subtitle: Text("Madhubhashana"),
+                              child: StreamBuilder(
+                                stream: _authservice.getActivity(widget.Id),
+                                builder: (context, snapshot) {
+                                  if (!snapshot.hasData) {
+                                    return const Center(
+                                      child: CircularProgressIndicator(),
+                                    );
+                                  }
+                                  var items = snapshot.data!.docs;
+                                  return ListView.builder(
+                                    physics: const ScrollPhysics(
+                                      parent: ScrollPhysics(
+                                          parent: BouncingScrollPhysics()),
                                     ),
+                                    itemCount: items.length,
+                                    itemBuilder: (context, index) {
+                                      var item = items[index].data()
+                                          as Map<String, dynamic>;
+                                      int secound = item['DateTime'].seconds;
+                                      int nanoseconds =
+                                          item['DateTime'].nanoseconds;
+                                      DateTime dateTime =
+                                          DateTime.fromMillisecondsSinceEpoch(
+                                              secound * 1000);
+                                      dateTime = dateTime.add(
+                                        Duration(
+                                            microseconds: nanoseconds ~/ 1000),
+                                      );
+                                      String formatedDateTime =
+                                          DateFormat('yyyy-MM-dd HH:mm:ss')
+                                              .format(dateTime);
+                                      return Card(
+                                        margin: const EdgeInsets.all(10),
+                                        child: ListTile(
+                                          leading:
+                                              const Icon(Icons.notifications),
+                                          title: Text(item['Activity']),
+                                          subtitle: Text(formatedDateTime),
+                                        ),
+                                      );
+                                    },
                                   );
                                 },
                               ),

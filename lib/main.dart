@@ -1,7 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:srm/admin/add_lec_halle.dart';
+import 'package:srm/admin/add_lectures.dart';
+import 'package:srm/admin/add_non_acdamic_starff.dart';
+import 'package:srm/admin/add_requiqment.dart';
 import 'package:srm/admin/admin_page.dart';
+import 'package:srm/admin/equiqment.dart';
+import 'package:srm/admin/reportview.dart';
+import 'package:srm/pages/report.dart';
 import 'package:srm/sign_in&up/sign_in.dart';
 import 'package:srm/color/appcolors.dart';
 
@@ -33,7 +40,7 @@ class MyApp extends StatelessWidget {
             ColorScheme.fromSeed(seedColor: Appcolors.primaryTextColor),
         useMaterial3: true,
       ),
-      home: const AdminPage(Id: "A123"),
+      home: const Reportview(id: "A123"),
     );
   }
 }

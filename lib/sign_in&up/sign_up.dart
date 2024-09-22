@@ -39,6 +39,7 @@ class _SignUpState extends State<SignUp> {
         lNme.isEmpty ||
         email.isEmpty ||
         address.isEmpty ||
+        psd.isEmpty ||
         pNo.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -76,8 +77,8 @@ class _SignUpState extends State<SignUp> {
           );
         });
 
-    String result =
-        await _authService.addData(stId, fNme, lNme, email, address, pNo, psd);
+    String result = await _authService.addData(
+        stId, fNme, lNme, email, address, pNo, psd, 'Student');
 
     Navigator.of(context).pop();
 
@@ -305,7 +306,7 @@ class _SignUpState extends State<SignUp> {
                           controller: _studentIdController,
                           keyboardType: TextInputType.text,
                           decoration: InputDecoration(
-                            labelText: "Enter Your Student ID",
+                            labelText: "Student ID",
                             enabledBorder: OutlineInputBorder(
                               borderSide: BorderSide(
                                 color: Appcolors.primaryTextColor,
@@ -320,7 +321,7 @@ class _SignUpState extends State<SignUp> {
                           controller: _firstNameController,
                           keyboardType: TextInputType.text,
                           decoration: InputDecoration(
-                            labelText: "Enter Your First Name",
+                            labelText: "First Name",
                             enabledBorder: OutlineInputBorder(
                               borderSide: BorderSide(
                                 color: Appcolors.primaryTextColor,
@@ -335,7 +336,7 @@ class _SignUpState extends State<SignUp> {
                           controller: _lastNameController,
                           keyboardType: TextInputType.text,
                           decoration: InputDecoration(
-                            labelText: "Enter Your Last Name",
+                            labelText: "Last Name",
                             enabledBorder: OutlineInputBorder(
                               borderSide: BorderSide(
                                 color: Appcolors.primaryTextColor,
@@ -350,7 +351,7 @@ class _SignUpState extends State<SignUp> {
                           controller: _emailController,
                           keyboardType: TextInputType.emailAddress,
                           decoration: InputDecoration(
-                            labelText: "Enter Your Email",
+                            labelText: "Email",
                             enabledBorder: OutlineInputBorder(
                               borderSide: BorderSide(
                                 color: Appcolors.primaryTextColor,
@@ -455,7 +456,7 @@ class _SignUpState extends State<SignUp> {
                           controller: _addressController,
                           keyboardType: TextInputType.streetAddress,
                           decoration: InputDecoration(
-                            labelText: "Enter Your Address",
+                            labelText: "Address",
                             enabledBorder: OutlineInputBorder(
                               borderSide: BorderSide(
                                 color: Appcolors.primaryTextColor,
@@ -470,7 +471,7 @@ class _SignUpState extends State<SignUp> {
                           controller: _phoneNoController,
                           keyboardType: TextInputType.phone,
                           decoration: InputDecoration(
-                            labelText: "Enter Your Phone No",
+                            labelText: "Phone No",
                             enabledBorder: OutlineInputBorder(
                               borderSide: BorderSide(
                                 color: Appcolors.primaryTextColor,
@@ -485,7 +486,7 @@ class _SignUpState extends State<SignUp> {
                           controller: _passwordController,
                           keyboardType: TextInputType.visiblePassword,
                           decoration: InputDecoration(
-                            labelText: "Enter Your Password",
+                            labelText: "Password",
                             enabledBorder: OutlineInputBorder(
                               borderSide: BorderSide(
                                 color: Appcolors.primaryTextColor,
