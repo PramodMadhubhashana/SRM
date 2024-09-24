@@ -27,7 +27,7 @@ class _EquiqmentState extends State<Equiqment> {
               SizedBox(
                 height: screenSize.height,
                 width: 300,
-                child: const Sidebar(),
+                child: Sidebar(id: widget.id),
               ),
             Expanded(
               child: Padding(

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:srm/admin/equiqment.dart';
 import 'package:srm/admin/lec_halle.dart';
+import 'package:srm/admin/lecturesList.dart';
+import 'package:srm/admin/nonstafflist.dart';
+import 'package:srm/admin/studentList.dart';
 import 'package:srm/color/appcolors.dart';
 import 'package:srm/pages/msg.dart';
 import 'package:srm/pages/notifications.dart';
@@ -68,7 +71,7 @@ class _AdminPageState extends State<AdminPage> {
             SizedBox(
               width: 300,
               height: screenSize.height,
-              child: const Sidebar(),
+              child: Sidebar(id: widget.Id),
             ),
           Expanded(
             child: SingleChildScrollView(
@@ -226,9 +229,8 @@ class _AdminPageState extends State<AdminPage> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) =>
-                                      Equiqment(id: widget.Id),
-                                ),
+                                    builder: (context) =>
+                                        Studentlist(id: widget.Id)),
                               );
                             }),
                             _homecart("Lectures Count", Icons.person_4_outlined,
@@ -237,7 +239,7 @@ class _AdminPageState extends State<AdminPage> {
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) =>
-                                      Equiqment(id: widget.Id),
+                                      Lectureslist(id: widget.Id),
                                 ),
                               );
                             }),
@@ -247,7 +249,7 @@ class _AdminPageState extends State<AdminPage> {
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) =>
-                                      Equiqment(id: widget.Id),
+                                      Nonstafflist(id: widget.Id),
                                 ),
                               );
                             }),

@@ -151,7 +151,7 @@ class _ProfileState extends State<Profile> {
                     SizedBox(
                       width: 300,
                       height: screenSize.height,
-                      child: const Sidebar(),
+                      child: Sidebar(id: widget.id),
                     ),
                   Expanded(
                     child: SingleChildScrollView(
@@ -166,9 +166,7 @@ class _ProfileState extends State<Profile> {
                                   width: 30,
                                 ),
                                 GestureDetector(
-                                  onTap: () {
-                                    print("eeee");
-                                  },
+                                  onTap: () {},
                                   child: ClipOval(
                                     child: Image.network(
                                       "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSXNHDqxmIYwry1G1NuywsgYUaxJINUmx8trA&s",
@@ -188,7 +186,7 @@ class _ProfileState extends State<Profile> {
                                 Column(
                                   children: [
                                     Text(
-                                      "Hello, ${userData?['First Name'] ?? 'User'}",
+                                      "${userData?['First Name'] ?? 'User'}",
                                       style: const TextStyle(
                                         fontSize: 20,
                                         fontWeight: FontWeight.w700,

@@ -25,13 +25,14 @@ class _LecHalleState extends State<LecHalle> {
   BookingPeriod? _selectPeriod;
   final AuthService _authService = AuthService();
   String? _currentBookingPeriod;
+  List<Map<String, dynamic>> _bookedDatesByHall = [];
 
   List<DateTime> _bookedDates = [];
   Future<void> fetchBookedDates() async {
     try {
-      final List<DateTime> bkdts = await _authService.bookDate();
+      final bkdts = await _authService.bookDate();
       setState(() {
-        _bookedDates = bkdts;
+        // _bookedDates = bkdts;
       });
     } catch (e) {
       print("Error fetching booked dates: $e");
@@ -40,7 +41,7 @@ class _LecHalleState extends State<LecHalle> {
 
   List<Map<String, dynamic>> _bookedPeriod = [];
 
-  Future<void> fetchBookPeroid() async {
+  Future<void> fetchBookPeroid(String name) async {
     List<Map<String, dynamic>> bookings = await _authService.bookPeroid();
 
     setState(() {
@@ -67,8 +68,7 @@ class _LecHalleState extends State<LecHalle> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    fetchBookPeroid();
-    fetchBookedDates();
+    // fetchBookPeroid();
   }
 
   @override
@@ -83,7 +83,7 @@ class _LecHalleState extends State<LecHalle> {
               SizedBox(
                 height: screenSize.height,
                 width: 300,
-                child: const Sidebar(),
+                child: Sidebar(id: widget.id),
               ),
             Expanded(
               child: Padding(
@@ -233,7 +233,6 @@ class _LecHalleState extends State<LecHalle> {
                                                     content: Text(
                                                         'Lecture hall booked successfully')),
                                               );
-                                              await fetchBookedDates();
 
                                               setState(() {
                                                 _selectedDay[widget.id] = null;

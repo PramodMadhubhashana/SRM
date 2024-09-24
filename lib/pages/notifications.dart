@@ -22,14 +22,16 @@ class _NotificationsState extends State<Notifications> {
         child: Row(
           children: [
             if (screenSize.width > 600)
-              const SizedBox(
+              SizedBox(
                 width: 300,
                 height: 700,
-                child: Sidebar(),
+                child: Sidebar(id: widget.id),
               ),
             Expanded(
               child: StreamBuilder(
-                  stream: _authService.getNotifications(widget.id),
+                  stream: _authService.getNotifications(
+                    _authService.getRole(widget.id).toString(),
+                  ),
                   builder: (context, snapshot) {
                     if (!snapshot.hasData) {
                       return const Center(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:srm/admin/admin_page.dart';
 import 'package:srm/color/appcolors.dart';
 import 'package:srm/pages/homepage.dart';
 import 'package:srm/service/service.dart';
@@ -17,7 +18,7 @@ class _SignInState extends State<SignIn> {
 
   final AuthService _authService = AuthService();
 
-  Future<void> _signIn() async {
+  Future<void> _signin() async {
     String userId = _idController.text.trim();
     String password = _passwordController.text.trim();
 
@@ -71,6 +72,14 @@ class _SignInState extends State<SignIn> {
               builder: (context) => Homepage(
                 stId: role['id'],
               ),
+            ),
+          );
+          break;
+        case 'Admin':
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => AdminPage(Id: role['id']),
             ),
           );
           break;
@@ -212,7 +221,7 @@ class _SignInState extends State<SignIn> {
                                 ).copyWith(
                                   elevation: ButtonStyleButton.allOrNull(5),
                                 ),
-                                onPressed: _signIn,
+                                onPressed: _signin,
                                 child: const Text(
                                   'Sign In',
                                   style: TextStyle(

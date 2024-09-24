@@ -94,7 +94,7 @@ class _AddLecturesState extends State<AddLectures> {
           content: Text(
             "Register Fail.",
             style: TextStyle(
-              color: Colors.greenAccent,
+              color: Colors.redAccent,
               fontSize: 16,
             ),
           ),
@@ -156,7 +156,7 @@ class _AddLecturesState extends State<AddLectures> {
               SizedBox(
                 height: screenSize.height,
                 width: 300,
-                child: const Sidebar(),
+                child: Sidebar(id: widget.id),
               ),
             Expanded(
               child: SingleChildScrollView(

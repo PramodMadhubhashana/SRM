@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 
 class AuthService {
   CollectionReference users = FirebaseFirestore.instance.collection('users');
@@ -153,6 +154,22 @@ class AuthService {
     return activity.where('userId', isEqualTo: id).snapshots();
   }
 
+  // add activity
+  Future<String> addActivity(String act, String uid) async {
+    try {
+      await activity.add(
+        {
+          'userId': uid,
+          "Activity": act,
+          "DateTime": DateTime.now(),
+        },
+      );
+      return "Succesfull";
+    } catch (e) {
+      return 'Fail';
+    }
+  }
+
 // Add Notifications
   Future<void> addNotification(String userId, String title, String body) async {
     final dateTime = DateTime.now().toIso8601String();
@@ -164,6 +181,7 @@ class AuthService {
           'title': title,
           'body': body,
           'date': dateTime,
+          'Role': getRole(userId),
         }
       ]),
     }).catchError((error) {
@@ -174,6 +192,7 @@ class AuthService {
               'title': title,
               'body': body,
               'date': dateTime,
+              'Role': getRole(userId),
             }
           ],
         });
@@ -187,7 +206,7 @@ class AuthService {
 
 // return Notifications
   Stream<QuerySnapshot> getNotifications(String id) {
-    return activity.where('userId', isEqualTo: id).snapshots();
+    return activity.where('Role', isEqualTo: id).snapshots();
   }
 
 // return  Lecture Halle Details
@@ -202,44 +221,71 @@ class AuthService {
   }
   // Boook Lecture hallle
 
-  Future<String> booklechalls(
+  Future<void> booklechalls(
       String HalleName, DateTime date, String period, String id) async {
-    try {
-      QuerySnapshot querySnapshot = await bookLecHalle
-          .where('hallId', isEqualTo: HalleName)
-          .where('date', isEqualTo: date)
-          .where('id', isEqualTo: id)
-          .where('period', isEqualTo: period)
-          .get();
-      if (querySnapshot.docs.isNotEmpty) {
-        return "booking found";
-      }
-      await bookLecHalle.add({
-        'hallId': HalleName,
-        'date': date,
-        'period': period,
-        'id': id,
-        'createdAt': DateTime.now(),
-      });
+    final dateTime = DateTime.now().toIso8601String();
 
-      return 'Successful';
-    } catch (e) {
-      print('Error booking hall: $e');
-      return 'Fail';
-    }
+    DocumentReference userDoc = bookLecHalle.doc(HalleName);
+    await userDoc.update({
+      'Booked Details': FieldValue.arrayUnion([
+        {
+          'hallId': HalleName,
+          'date': date,
+          'period': period,
+          'id': id,
+          'createdAt': DateTime.now(),
+        }
+      ]),
+    }).catchError((error) {
+      if (error is FirebaseException && error.code == 'not-found') {
+        userDoc.set({
+          'Booked Details': [
+            {
+              'hallId': HalleName,
+              'date': date,
+              'period': period,
+              'id': id,
+              'createdAt': DateTime.now(),
+            }
+          ],
+        });
+      } else {
+        if (kDebugMode) {
+          print('Failed to add notification: $error');
+        }
+      }
+    });
   }
 
-  // return Book date
-  Future<List<DateTime>> bookDate() async {
-    List<DateTime> bookingDate = [];
-    QuerySnapshot querySnapshot = await bookLecHalle.get();
+  // Future<String> booklechalls(
+  //     String HalleName, DateTime date, String period, String id) async {
+  //   try {
+  //     QuerySnapshot querySnapshot = await bookLecHalle
+  //         .where('hallId', isEqualTo: HalleName)
+  //         .where('date', isEqualTo: date)
+  //         .where('id', isEqualTo: id)
+  //         .where('period', isEqualTo: period)
+  //         .get();
+  //     if (querySnapshot.docs.isNotEmpty) {
+  //       return "booking found";
+  //     }
+  //     await bookLecHalle.add({
+  //       'hallId': HalleName,
+  //       'date': date,
+  //       'period': period,
+  //       'id': id,
+  //       'createdAt': DateTime.now(),
+  //     });
 
-    for (var doc in querySnapshot.docs) {
-      DateTime bookedDate = (doc['date'] as Timestamp).toDate();
-      bookingDate.add(bookedDate);
-    }
+  //     return 'Successful';
+  //   } catch (e) {
+  //     print('Error booking hall: $e');
+  //     return 'Fail';
+  //   }
+  // }
 
-    return bookingDate;
+  Future<QuerySnapshot> bookDate() async {
+    return await bookLecHalle.get();
   }
 
   // return Booking Peroid
@@ -278,23 +324,13 @@ class AuthService {
     }
   }
 
-  // Delete Schedule
-  Future<String> deleteSchedule(String id) async {
-    try {
-      final result = await Schedule.doc(id).delete();
-      print(id);
-      return "Succesfull";
-    } catch (e) {
-      return 'Error';
-    }
-  }
-
   // return Equiqment Details
   Stream<List<Map<String, dynamic>>> getEquiqmentDetails() {
     return equiqments.snapshots().map((snapshot) {
-      final data = snapshot.docs
-          .map((doc) => doc.data() as Map<String, dynamic>)
-          .toList();
+      final data = snapshot.docs.map((doc) {
+        final docData = {'id': doc.id, ...doc.data() as Map<String, dynamic>};
+        return docData;
+      }).toList();
 
       return data;
     });
@@ -399,7 +435,22 @@ class AuthService {
         {
           'Name': name,
           'qty': qty,
+          'morningqty': 0,
+          'eveningqty': 0,
+          'fullTimeqty': 0,
         },
+      );
+      return 'Success';
+    } catch (e) {
+      return 'Fail';
+    }
+  }
+
+  // book equiqment
+  Future<String> bookEquiqment(int qty, String name, String id) async {
+    try {
+      await equiqments.doc(id).update(
+        {name: qty},
       );
       return 'Success';
     } catch (e) {
@@ -427,5 +478,51 @@ class AuthService {
 // return reports
   Stream<QuerySnapshot> getReports() {
     return report.snapshots();
+  }
+
+  // return Role
+  Future<String> getRole(String id) async {
+    try {
+      DocumentSnapshot userDoc = await users.doc(id).get();
+      return userDoc['role'];
+    } catch (e) {
+      return '';
+    }
+  }
+
+// return students
+  Stream<QuerySnapshot> getstudents() {
+    return users.where('role', isEqualTo: 'Student').snapshots();
+  }
+
+  // return lectures
+  Stream<QuerySnapshot> getlectures() {
+    return users.where('role', isEqualTo: 'Lecture').snapshots();
+  }
+
+  // return non acadmic staff
+  Stream<QuerySnapshot> getnonacadmicstaff() {
+    return users.where('role', isEqualTo: 'Lecture').snapshots();
+  }
+
+  // delete users
+  Future<String> deleteUsers(String id) async {
+    try {
+      await users.doc(id).delete();
+      return "Successful";
+    } catch (e) {
+      return "Fail";
+    }
+  }
+
+  // Delete Schedule
+  Future<String> deleteSchedule(String id) async {
+    try {
+      final result = await Schedule.doc(id).delete();
+
+      return "Succesfull";
+    } catch (e) {
+      return 'Error';
+    }
   }
 }

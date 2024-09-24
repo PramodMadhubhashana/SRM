@@ -60,7 +60,9 @@ class _ViewSheduleState extends State<ViewShedule> {
               SizedBox(
                 height: screenSize.height,
                 width: 300,
-                child: const Sidebar(),
+                child: Sidebar(
+                  id: widget.id,
+                ),
               ),
             Expanded(
               child: SingleChildScrollView(
@@ -151,6 +153,7 @@ class _ViewSheduleState extends State<ViewShedule> {
                               );
                             }
                             var items = snapshot.data!.docs;
+
                             return ListView.builder(
                               itemCount: items.length,
                               itemBuilder: (context, index) {

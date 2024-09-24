@@ -52,7 +52,7 @@ class _HomepageState extends State<Homepage> {
       setState(() {
         eqmttCount = count;
       });
-    } catch (e) { 
+    } catch (e) {
       return;
     }
   }
@@ -81,7 +81,9 @@ class _HomepageState extends State<Homepage> {
               SizedBox(
                 width: 300,
                 height: screenSize.height,
-                child: const Sidebar(),
+                child: Sidebar(
+                  id: widget.stId,
+                ),
               ),
             Expanded(
               child: SingleChildScrollView(

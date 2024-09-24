@@ -23,10 +23,10 @@ class _ReportviewState extends State<Reportview> {
         child: Row(
           children: [
             if (screenSize.width > 600)
-              const SizedBox(
+              SizedBox(
                 width: 300,
                 height: 700,
-                child: Sidebar(),
+                child: Sidebar(id: widget.id),
               ),
             Expanded(
               child: StreamBuilder(

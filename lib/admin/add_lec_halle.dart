@@ -19,8 +19,8 @@ class AddLecHalle extends StatefulWidget {
 }
 
 class _AddLecHalleState extends State<AddLecHalle> {
-  File? _image; // For storing the image on mobile
-  Uint8List? _webImage; // For storing the image on web
+  File? _image; 
+  Uint8List? _webImage;
   final ImagePicker _imagePicker = ImagePicker();
   final AuthService _authService = AuthService();
   final TextEditingController _halleNameController = TextEditingController();
@@ -144,7 +144,7 @@ class _AddLecHalleState extends State<AddLecHalle> {
               SizedBox(
                 height: screenSize.height,
                 width: 300,
-                child: const Sidebar(),
+                child: Sidebar(id: widget.id),
               ),
             Expanded(
               child: SingleChildScrollView(

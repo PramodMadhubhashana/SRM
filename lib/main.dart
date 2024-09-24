@@ -7,8 +7,14 @@ import 'package:srm/admin/add_non_acdamic_starff.dart';
 import 'package:srm/admin/add_requiqment.dart';
 import 'package:srm/admin/admin_page.dart';
 import 'package:srm/admin/equiqment.dart';
+import 'package:srm/admin/lecturesList.dart';
 import 'package:srm/admin/reportview.dart';
+import 'package:srm/admin/studentList.dart';
+import 'package:srm/pages/book_equiqment.dart';
+import 'package:srm/pages/book_lec_hall.dart';
 import 'package:srm/pages/report.dart';
+import 'package:srm/pages/sidebar.dart';
+import 'package:srm/pages/view_shedule.dart';
 import 'package:srm/sign_in&up/sign_in.dart';
 import 'package:srm/color/appcolors.dart';
 
@@ -40,7 +46,7 @@ class MyApp extends StatelessWidget {
             ColorScheme.fromSeed(seedColor: Appcolors.primaryTextColor),
         useMaterial3: true,
       ),
-      home: const Reportview(id: "A123"),
+      home: const BookLecHall(id: "A123"),
     );
   }
 }

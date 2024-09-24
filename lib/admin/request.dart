@@ -3,7 +3,8 @@ import 'package:srm/color/appcolors.dart';
 import 'package:srm/pages/sidebar.dart';
 
 class Request extends StatefulWidget {
-  const Request({super.key});
+  final String id;
+  const Request({super.key, required this.id});
 
   @override
   State<Request> createState() => _RequestState();
@@ -19,10 +20,10 @@ class _RequestState extends State<Request> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (screenSize.width > 600)
-              const SizedBox(
+              SizedBox(
                 width: 300,
                 height: 700,
-                child: Sidebar(),
+                child: Sidebar(id: widget.id),
               ),
             Expanded(
               child: Padding(

@@ -157,7 +157,7 @@ class _AddNonAcdamicStarffState extends State<AddNonAcdamicStarff> {
               SizedBox(
                 height: screenSize.height,
                 width: 300,
-                child: const Sidebar(),
+                child: Sidebar(id: widget.id),
               ),
             Expanded(
               child: SingleChildScrollView(

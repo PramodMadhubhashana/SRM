@@ -14,8 +14,83 @@ class BookEquiqment extends StatefulWidget {
 enum BookingPeriod { morning, evening, fullDay }
 
 class _BookEquiqmentState extends State<BookEquiqment> {
-  BookingPeriod? _selectPeriod;
+  Map<int, BookingPeriod?> _selectedPeriods = {};
+  Map<int, String> docid = {};
   final AuthService _authService = AuthService();
+  final TextEditingController _qtyController = TextEditingController();
+
+  Future<void> _bookeequiqment(int index, String name) async {
+    String qty = _qtyController.text.trim();
+    if (_selectedPeriods[index] == null || qty.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            "Input quantity.",
+            style: TextStyle(
+              color: Colors.redAccent,
+              fontSize: 16,
+            ),
+          ),
+        ),
+      );
+      return;
+    }
+    showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
+        });
+
+    String? result = await _authService.bookEquiqment(
+      int.parse(qty),
+      _selectedPeriods[index] == BookingPeriod.morning
+          ? 'morningqty'
+          : _selectedPeriods[index] == BookingPeriod.evening
+              ? 'eveningqty'
+              : 'fullTimeqty',
+      docid[index].toString(),
+    );
+    String? actresult = await _authService.addActivity(
+        "$name : ${_selectedPeriods[index]}", widget.id);
+    await _authService.addNotification(
+        widget.id, "Request : $name", "Request to $name, Quatity : $qty");
+    Navigator.of(context).pop();
+
+    if (result == 'Success') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            "Add successfull",
+            style: TextStyle(
+              color: Colors.greenAccent,
+              fontSize: 16,
+            ),
+          ),
+        ),
+      );
+
+      return;
+    }
+
+    if (result == 'Fail') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            "Add Fail.",
+            style: TextStyle(
+              color: Colors.greenAccent,
+              fontSize: 16,
+            ),
+          ),
+        ),
+      );
+      return;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
@@ -27,7 +102,7 @@ class _BookEquiqmentState extends State<BookEquiqment> {
               SizedBox(
                 height: screenSize.height,
                 width: 300,
-                child: const Sidebar(),
+                child: Sidebar(id: widget.id),
               ),
             Expanded(
               child: Padding(
@@ -60,12 +135,16 @@ class _BookEquiqmentState extends State<BookEquiqment> {
                                 child: Text("No Lec Equiqments"));
                           }
                           final equiqments = snapshot.data!;
+
                           return ListView.builder(
                             physics: const ScrollPhysics(
                                 parent: BouncingScrollPhysics()),
                             itemCount: equiqments.length,
                             itemBuilder: (context, index) {
                               final eqmt = equiqments[index];
+
+                              docid[index] = eqmt['id'];
+
                               return Card(
                                 margin: const EdgeInsets.all(10),
                                 child: Container(
@@ -114,7 +193,8 @@ class _BookEquiqmentState extends State<BookEquiqment> {
                                                       children: [
                                                         Column(
                                                           children:
-                                                              _radiobutton(),
+                                                              _radiobutton(
+                                                                  index),
                                                         ),
                                                         Column(
                                                           mainAxisAlignment:
@@ -124,7 +204,13 @@ class _BookEquiqmentState extends State<BookEquiqment> {
                                                               CrossAxisAlignment
                                                                   .start,
                                                           children: _list(
-                                                              eqmt['qty']),
+                                                            eqmt['morningqty'],
+                                                            eqmt['eveningqty'],
+                                                            eqmt['qty'],
+                                                            eqmt['fullTimeqty'],
+                                                            index,
+                                                            eqmt['Name'],
+                                                          ),
                                                         ),
                                                       ],
                                                     ),
@@ -145,14 +231,21 @@ class _BookEquiqmentState extends State<BookEquiqment> {
                                                 Column(
                                                   children: [
                                                     Row(
-                                                      children: _radiobutton(),
+                                                      children:
+                                                          _radiobutton(index),
                                                     ),
                                                     const SizedBox(
                                                       height: 30,
                                                     ),
                                                     Column(
-                                                      children:
-                                                          _list(eqmt['qty']),
+                                                      children: _list(
+                                                        eqmt['morningqty'],
+                                                        eqmt['eveningqty'],
+                                                        eqmt['qty'],
+                                                        eqmt['fullTimeqty'],
+                                                        index,
+                                                        eqmt['Name'],
+                                                      ),
                                                     ),
                                                   ],
                                                 ),
@@ -180,9 +273,12 @@ class _BookEquiqmentState extends State<BookEquiqment> {
     );
   }
 
-  List<Widget> _list(String qty) {
+  List<Widget> _list(
+      int mqty, int eqty, int qty, int fqty, int index, String name) {
     return [
-      Text("Available Quantity : $qty"),
+      Text("Available Morning : ${qty - mqty}"),
+      Text("Available evening : ${qty - eqty}"),
+      Text("Available Full day : ${qty - (mqty + eqty)}"),
       const SizedBox(
         height: 20,
         width: 20,
@@ -191,6 +287,7 @@ class _BookEquiqmentState extends State<BookEquiqment> {
         height: 50,
         width: 150,
         child: TextField(
+          controller: _qtyController,
           keyboardType: TextInputType.number,
           decoration: InputDecoration(
             labelText: "Quantity",
@@ -205,7 +302,14 @@ class _BookEquiqmentState extends State<BookEquiqment> {
       const SizedBox(
         height: 10,
       ),
-      ElevatedButton(onPressed: () {}, child: const Text("Request"))
+      ElevatedButton(
+          onPressed: () {
+            _bookeequiqment(
+              index,
+              name,
+            );
+          },
+          child: const Text("Request"))
     ];
   }
 
@@ -220,19 +324,19 @@ class _BookEquiqmentState extends State<BookEquiqment> {
     ];
   }
 
-  List<Widget> _radiobutton() {
+  List<Widget> _radiobutton(int index) {
     return [
       SizedBox(
         width: 160,
         child: RadioListTile<BookingPeriod>(
           title: const Text('Morning'),
           value: BookingPeriod.morning,
-          groupValue: _selectPeriod,
           onChanged: (BookingPeriod? value) {
             setState(() {
-              _selectPeriod = value;
+              _selectedPeriods[index] = value;
             });
           },
+          groupValue: _selectedPeriods[index],
         ),
       ),
       SizedBox(
@@ -240,12 +344,12 @@ class _BookEquiqmentState extends State<BookEquiqment> {
         child: RadioListTile<BookingPeriod>(
           title: const Text('Evening'),
           value: BookingPeriod.evening,
-          groupValue: _selectPeriod,
           onChanged: (BookingPeriod? value) {
             setState(() {
-              _selectPeriod = value;
+              _selectedPeriods[index] = value;
             });
           },
+          groupValue: _selectedPeriods[index],
         ),
       ),
       SizedBox(
@@ -253,12 +357,12 @@ class _BookEquiqmentState extends State<BookEquiqment> {
         child: RadioListTile<BookingPeriod>(
           title: const Text('Full Day'),
           value: BookingPeriod.fullDay,
-          groupValue: _selectPeriod,
           onChanged: (BookingPeriod? value) {
             setState(() {
-              _selectPeriod = value;
+              _selectedPeriods[index] = value;
             });
           },
+          groupValue: _selectedPeriods[index],
         ),
       ),
     ];

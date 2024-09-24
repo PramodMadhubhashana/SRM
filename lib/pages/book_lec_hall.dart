@@ -1,5 +1,5 @@
 import 'dart:async';
-
+import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -22,55 +22,97 @@ enum BookingPeriod { morning, evening, fullDay }
 
 class _BookLecHallState extends State<BookLecHall> {
   DateTime _focusedDay = DateTime.now();
-  late final Map<String, DateTime?> _selectedDay = {widget.id: null};
+  Map<int, DateTime?> _selectedDay = {};
   late CalendarFormat _calendarFormat = CalendarFormat.month;
-  BookingPeriod? _selectPeriod;
+  Map<int, BookingPeriod?> _selectPeriod = {};
   final AuthService _authService = AuthService();
-  String? _currentBookingPeriod;
+  Map<String, List<DateTime>> hallDatesMap = {};
+  Map<String, Map<DateTime, String>> period = {};
+  String? bkperiod;
 
-  List<DateTime> _bookedDates = [];
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    fetchBookedDates();
+  }
+
   Future<void> fetchBookedDates() async {
     try {
-      final List<DateTime> bkdts = await _authService.bookDate();
-      setState(() {
-        _bookedDates = bkdts;
-      });
+      final QuerySnapshot snapshot = await _authService.bookDate();
+
+      for (var doc in snapshot.docs) {
+        var data = doc.data() as Map<String, dynamic>?;
+
+        if (data != null) {
+          if (data.containsKey('Booked Details')) {
+            List<dynamic> bookedDetails = data['Booked Details'];
+            for (var booking in bookedDetails) {
+              if (booking.containsKey('hallId') &&
+                  booking.containsKey('date') &&
+                  booking.containsKey('period')) {
+                String hallId = booking['hallId'];
+                Timestamp timestamp = booking['date'];
+                DateTime dateTime = timestamp.toDate();
+
+                DateTime dateOnly =
+                    DateTime(dateTime.year, dateTime.month, dateTime.day);
+                String prd = booking['period'];
+
+                if (!hallDatesMap.containsKey(hallId)) {
+                  hallDatesMap[hallId] = [];
+                }
+                hallDatesMap[hallId]!.add(dateOnly);
+
+                if (!period.containsKey(hallId)) {
+                  period[hallId] = {};
+                }
+                period[hallId]![dateOnly] = prd;
+              }
+            }
+          } else {
+            return;
+          }
+        }
+      }
     } catch (e) {
-      print("Error fetching booked dates: $e");
+      return;
     }
   }
 
-  List<Map<String, dynamic>> _bookedPeriod = [];
+  void bookPeriod(DateTime date, String name) {
+    DateTime dateTime = DateTime(date.year, date.month, date.day);
 
-  Future<void> fetchBookPeroid() async {
-    List<Map<String, dynamic>> bookings = await _authService.bookPeroid();
+    if (period.containsKey(name) && period[name]!.containsKey(dateTime)) {
+      String? bookinperiod = period[name]![dateTime]!;
 
-    setState(() {
-      _bookedPeriod = bookings;
-    });
-  }
-
-  String? getBookingPeriod(DateTime day) {
-    for (var booking in _bookedPeriod) {
-      if (booking.containsKey('date') && _isSameDate(day, booking['date'])) {
-        return booking['period'];
+      if (bookinperiod == "BookingPeriod.fullDay") {
+        setState(() {
+          bkperiod = 'full day';
+          print(bkperiod);
+        });
+        return;
+      }
+      if (bookinperiod == 'BookingPeriod.evening') {
+        setState(() {
+          bkperiod = 'Evening';
+        });
+        return;
+      }
+      if (bookinperiod == 'BookingPeriod.morning') {
+        setState(() {
+          bkperiod = 'Morning';
+        });
+        return;
       }
     }
-    return null;
+    return;
   }
 
   bool _isSameDate(DateTime date1, DateTime date2) {
     return date1.year == date2.year &&
         date1.month == date2.month &&
         date1.day == date2.day;
-  }
-
-  @override
-  void initState() {
-    // TODO: implement initState
-    super.initState();
-    fetchBookPeroid();
-    fetchBookedDates();
   }
 
   @override
@@ -85,25 +127,27 @@ class _BookLecHallState extends State<BookLecHall> {
               SizedBox(
                 height: screenSize.height,
                 width: 300,
-                child: const Sidebar(),
+                child: Sidebar(
+                  id: widget.id,
+                ),
               ),
             Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Book Lecture Halls",
-                      style: TextStyle(
-                        fontSize: 24,
-                        color: Appcolors.primaryTextColor,
-                        fontWeight: FontWeight.w700,
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Book Lecture Halls",
+                        style: TextStyle(
+                          fontSize: 24,
+                          color: Appcolors.primaryTextColor,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 20),
-                    Expanded(
-                      child: StreamBuilder<List<Map<String, dynamic>>>(
+                      const SizedBox(height: 20),
+                      StreamBuilder<List<Map<String, dynamic>>>(
                         stream: _authService.getLectureHallDetails(),
                         builder: (context, snapshot) {
                           if (snapshot.connectionState ==
@@ -120,9 +164,12 @@ class _BookLecHallState extends State<BookLecHall> {
 
                           final lechalls = snapshot.data!;
                           return ListView.builder(
+                            physics: const NeverScrollableScrollPhysics(),
+                            shrinkWrap: true,
                             itemCount: lechalls.length,
                             itemBuilder: (context, index) {
                               final lecHall = lechalls[index];
+
                               return Card(
                                 margin: const EdgeInsets.all(10),
                                 child: Container(
@@ -156,13 +203,17 @@ class _BookLecHallState extends State<BookLecHall> {
                                               ? Column(
                                                   mainAxisAlignment:
                                                       MainAxisAlignment.center,
-                                                  children: _buildChildrens(),
+                                                  children: _buildChildrens(
+                                                      index,
+                                                      lecHall['Halle Name']),
                                                 )
                                               : Row(
                                                   mainAxisAlignment:
                                                       MainAxisAlignment
                                                           .spaceAround,
-                                                  children: _buildChildrens(),
+                                                  children: _buildChildrens(
+                                                      index,
+                                                      lecHall['Halle Name']),
                                                 );
                                         },
                                       ),
@@ -199,7 +250,7 @@ class _BookLecHallState extends State<BookLecHall> {
                                           ),
                                           const SizedBox(height: 10),
                                           Text(
-                                            "Selected Booking Period: ${_currentBookingPeriod == "BookingPeriod.morning" ? "Morning" : _currentBookingPeriod == "BookingPeriod.evening" ? "Evening" : _currentBookingPeriod == "BookingPeriod.Full Day" ? "Full day" : "No Booking "}",
+                                            "Book Period : ${bkperiod ?? "No Booking"}",
                                             style: const TextStyle(
                                                 fontSize: 18,
                                                 fontWeight: FontWeight.w500),
@@ -209,39 +260,51 @@ class _BookLecHallState extends State<BookLecHall> {
                                       LayoutBuilder(
                                         builder: (context, constraints) {
                                           return constraints.maxWidth > 600
-                                              ? Row(children: _radioListTile())
+                                              ? Row(
+                                                  children:
+                                                      _radioListTile(index))
                                               : Column(
-                                                  children: _radioListTile());
+                                                  children:
+                                                      _radioListTile(index));
                                         },
                                       ),
                                       const SizedBox(height: 10),
                                       ElevatedButton(
                                         onPressed: () async {
                                           final selectedDate =
-                                              _selectedDay[widget.id];
+                                              _selectedDay[index];
 
-                                          if (selectedDate != null) {
+                                          if (selectedDate != null &&
+                                              _selectPeriod != null) {
                                             try {
+                                              showDialog(
+                                                context: context,
+                                                barrierDismissible: false,
+                                                builder:
+                                                    (BuildContext context) {
+                                                  return const Center(
+                                                    child:
+                                                        CircularProgressIndicator(),
+                                                  );
+                                                },
+                                              );
                                               final result = await _authService
                                                   .booklechalls(
-                                                      lecHall['Halle Name'],
-                                                      selectedDate,
-                                                      _selectPeriod.toString(),
-                                                      widget.id);
+                                                lecHall['Halle Name'],
+                                                selectedDate,
+                                                _selectPeriod[index].toString(),
+                                                widget.id,
+                                              );
 
+                                              Navigator.of(context).pop();
                                               ScaffoldMessenger.of(context)
                                                   .showSnackBar(
                                                 const SnackBar(
-                                                    content: Text(
-                                                        'Lecture hall booked successfully')),
+                                                  content: Text(
+                                                      'Booked Successfull'),
+                                                ),
                                               );
                                               await fetchBookedDates();
-
-                                              setState(() {
-                                                _selectedDay[widget.id] = null;
-                                                _selectPeriod =
-                                                    BookingPeriod.morning;
-                                              });
                                             } catch (e) {
                                               ScaffoldMessenger.of(context)
                                                   .showSnackBar(
@@ -279,8 +342,8 @@ class _BookLecHallState extends State<BookLecHall> {
                           );
                         },
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -290,17 +353,17 @@ class _BookLecHallState extends State<BookLecHall> {
     );
   }
 
-  List<Widget> _radioListTile() {
+  List<Widget> _radioListTile(int index) {
     return [
       SizedBox(
         width: 160,
         child: RadioListTile<BookingPeriod>(
           title: const Text('Morning'),
           value: BookingPeriod.morning,
-          groupValue: _selectPeriod,
+          groupValue: _selectPeriod[index],
           onChanged: (BookingPeriod? value) {
             setState(() {
-              _selectPeriod = value!;
+              _selectPeriod[index] = value!;
             });
           },
         ),
@@ -310,10 +373,10 @@ class _BookLecHallState extends State<BookLecHall> {
         child: RadioListTile<BookingPeriod>(
           title: const Text('Evening'),
           value: BookingPeriod.evening,
-          groupValue: _selectPeriod,
+          groupValue: _selectPeriod[index],
           onChanged: (BookingPeriod? value) {
             setState(() {
-              _selectPeriod = value!;
+              _selectPeriod[index] = value!;
             });
           },
         ),
@@ -323,10 +386,10 @@ class _BookLecHallState extends State<BookLecHall> {
         child: RadioListTile<BookingPeriod>(
           title: const Text('Full Day'),
           value: BookingPeriod.fullDay,
-          groupValue: _selectPeriod,
+          groupValue: _selectPeriod[index],
           onChanged: (BookingPeriod? value) {
             setState(() {
-              _selectPeriod = value!;
+              _selectPeriod[index] = value!;
             });
           },
         ),
@@ -334,7 +397,7 @@ class _BookLecHallState extends State<BookLecHall> {
     ];
   }
 
-  List<Widget> _buildChildrens() {
+  List<Widget> _buildChildrens(int index, String hallname) {
     return [
       Image.asset(
         "asset/images/wood.jpg",
@@ -353,20 +416,12 @@ class _BookLecHallState extends State<BookLecHall> {
           availableCalendarFormats: const {
             CalendarFormat.month: '1 Month',
           },
-          onDaySelected: (selectedDay, focusedDay) {
-            setState(() {
-              _selectedDay[widget.id] = selectedDay;
-              _focusedDay = focusedDay;
-              _currentBookingPeriod = getBookingPeriod(selectedDay);
-            });
-          },
-          selectedDayPredicate: (day) {
-            return isSameDay(_selectedDay[widget.id], day);
-          },
           calendarBuilders: CalendarBuilders(
             defaultBuilder: (context, day, focusedDay) {
-              if (_bookedDates
-                  .any((bookedDate) => _isSameDate(bookedDate, day))) {
+              if (hallDatesMap.containsKey(hallname) &&
+                  hallDatesMap[hallname] != null &&
+                  hallDatesMap[hallname]!
+                      .any((bookedDate) => _isSameDate(bookedDate, day))) {
                 return Container(
                   decoration: const BoxDecoration(
                     color: Colors.redAccent,
@@ -380,6 +435,16 @@ class _BookLecHallState extends State<BookLecHall> {
               return null;
             },
           ),
+          onDaySelected: (selectedDay, focusedDay) {
+            setState(() {
+              _selectedDay[index] = selectedDay;
+              _focusedDay = focusedDay;
+              bookPeriod(selectedDay, hallname);
+            });
+          },
+          selectedDayPredicate: (day) {
+            return isSameDay(_selectedDay[index], day);
+          },
           onFormatChanged: (format) {
             setState(() {
               _calendarFormat = format;

@@ -39,7 +39,7 @@ class _MsgState extends State<Msg> {
               SizedBox(
                 height: screenSize.height,
                 width: 300,
-                child: const Sidebar(),
+                child: Sidebar(id: widget.stId),
               ),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
