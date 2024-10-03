@@ -1,8 +1,7 @@
+import 'dart:async';
 import 'dart:io';
-
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
@@ -10,38 +9,44 @@ import 'package:srm/color/appcolors.dart';
 import 'package:srm/pages/sidebar.dart';
 import 'package:srm/service/service.dart';
 
-class AddLecHalle extends StatefulWidget {
+class Addadmin extends StatefulWidget {
   final String id;
-  const AddLecHalle({super.key, required this.id});
+  const Addadmin({super.key, required this.id});
 
   @override
-  State<AddLecHalle> createState() => _AddLecHalleState();
+  State<Addadmin> createState() => _AddadminState();
 }
 
-class _AddLecHalleState extends State<AddLecHalle> {
+class _AddadminState extends State<Addadmin> {
   File? _image;
   Uint8List? _webImage;
   final ImagePicker _imagePicker = ImagePicker();
   final AuthService _authService = AuthService();
-  final TextEditingController _halleNameController = TextEditingController();
-  final TextEditingController _computersControlller = TextEditingController();
-  final TextEditingController _chairsControllers = TextEditingController();
-  final TextEditingController _deskControlller = TextEditingController();
-  final TextEditingController _capacityController = TextEditingController();
+  final TextEditingController _lectureIdController = TextEditingController();
+  final TextEditingController _firstNameController = TextEditingController();
+  final TextEditingController _lastNameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _addressController = TextEditingController();
+  final TextEditingController _phoneNoController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
   dynamic files;
 
-  Future<void> _addLecHalls() async {
-    String name = _halleNameController.text.trim();
-    String computers = _computersControlller.text.trim();
-    String chairs = _chairsControllers.text.trim();
-    String desk = _deskControlller.text.trim();
-    String capacity = _capacityController.text.trim();
+  Future<void> _addAdmin() async {
+    String stId = _lectureIdController.text.trim();
+    String fNme = _firstNameController.text.trim();
+    String lNme = _lastNameController.text.trim();
+    String email = _emailController.text.trim();
+    String address = _addressController.text.trim();
+    String pNo = _phoneNoController.text.trim();
+    String psd = _passwordController.text.trim();
 
-    if (name.isEmpty ||
-        computers.isEmpty ||
-        chairs.isEmpty ||
-        desk.isEmpty ||
-        capacity.isEmpty) {
+    if (stId.isEmpty ||
+        fNme.isEmpty ||
+        lNme.isEmpty ||
+        email.isEmpty ||
+        address.isEmpty ||
+        psd.isEmpty ||
+        pNo.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
@@ -53,16 +58,8 @@ class _AddLecHalleState extends State<AddLecHalle> {
           ),
         ),
       );
-      setState(() {
-        _halleNameController.clear();
-        _computersControlller.clear();
-        _chairsControllers.clear();
-        _deskControlller.clear();
-        _capacityController.clear();
-      });
       return;
     }
-
     showDialog(
         context: context,
         barrierDismissible: false,
@@ -71,10 +68,12 @@ class _AddLecHalleState extends State<AddLecHalle> {
             child: CircularProgressIndicator(),
           );
         });
+
     String url = await uploadImge(files);
     if (url != 'Fail') {
-      String? result = await _authService.addHalle(
-          name, computers, chairs, desk, capacity, url);
+      String result = await _authService.addData(
+          stId, fNme, lNme, email, address, pNo, psd, "Admin", url);
+
       Navigator.of(context).pop();
 
       if (result == 'Success') {
@@ -97,9 +96,23 @@ class _AddLecHalleState extends State<AddLecHalle> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
-              "Add Fail.",
+              "Register Fail.",
               style: TextStyle(
-                color: Colors.greenAccent,
+                color: Colors.redAccent,
+                fontSize: 16,
+              ),
+            ),
+          ),
+        );
+        return;
+      }
+      if (result == 'available') {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              "Already Registered",
+              style: TextStyle(
+                color: Colors.redAccent,
                 fontSize: 16,
               ),
             ),
@@ -153,7 +166,7 @@ class _AddLecHalleState extends State<AddLecHalle> {
   Future<String> uploadImge(dynamic file) async {
     if (file != null) {
       try {
-        String url = await _authService.addLecHalleImage(file);
+        String url = await _authService.addAdminImage(file);
         return url;
       } catch (e) {
         return 'Fail';
@@ -177,6 +190,9 @@ class _AddLecHalleState extends State<AddLecHalle> {
               ),
             Expanded(
               child: SingleChildScrollView(
+                physics: const ScrollPhysics(
+                  parent: BouncingScrollPhysics(),
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -186,7 +202,7 @@ class _AddLecHalleState extends State<AddLecHalle> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            "Add Lec Halle",
+                            "Register Admin",
                             style: TextStyle(
                               fontSize: 20,
                               color: Appcolors.primaryTextColor,
@@ -200,10 +216,10 @@ class _AddLecHalleState extends State<AddLecHalle> {
                             height: 50,
                             width: 350,
                             child: TextField(
-                              controller: _halleNameController,
+                              controller: _lectureIdController,
                               keyboardType: TextInputType.text,
                               decoration: InputDecoration(
-                                labelText: "Halle Name",
+                                labelText: "Lecture Id",
                                 enabledBorder: OutlineInputBorder(
                                   borderSide: BorderSide(
                                     color: Appcolors.primaryTextColor,
@@ -219,10 +235,10 @@ class _AddLecHalleState extends State<AddLecHalle> {
                             height: 50,
                             width: 350,
                             child: TextField(
-                              controller: _chairsControllers,
+                              controller: _firstNameController,
                               keyboardType: TextInputType.text,
                               decoration: InputDecoration(
-                                labelText: "No of Chairs",
+                                labelText: "First Name",
                                 enabledBorder: OutlineInputBorder(
                                   borderSide: BorderSide(
                                     color: Appcolors.primaryTextColor,
@@ -238,10 +254,10 @@ class _AddLecHalleState extends State<AddLecHalle> {
                             height: 50,
                             width: 350,
                             child: TextField(
-                              controller: _deskControlller,
-                              keyboardType: TextInputType.number,
+                              controller: _lastNameController,
+                              keyboardType: TextInputType.text,
                               decoration: InputDecoration(
-                                labelText: "NO Of Desk",
+                                labelText: "Last Name",
                                 enabledBorder: OutlineInputBorder(
                                   borderSide: BorderSide(
                                     color: Appcolors.primaryTextColor,
@@ -257,10 +273,10 @@ class _AddLecHalleState extends State<AddLecHalle> {
                             height: 50,
                             width: 350,
                             child: TextField(
-                              controller: _computersControlller,
-                              keyboardType: TextInputType.number,
+                              controller: _emailController,
+                              keyboardType: TextInputType.emailAddress,
                               decoration: InputDecoration(
-                                labelText: "NO Of Computers",
+                                labelText: "Email",
                                 enabledBorder: OutlineInputBorder(
                                   borderSide: BorderSide(
                                     color: Appcolors.primaryTextColor,
@@ -276,10 +292,48 @@ class _AddLecHalleState extends State<AddLecHalle> {
                             height: 50,
                             width: 350,
                             child: TextField(
-                              controller: _capacityController,
+                              controller: _addressController,
                               keyboardType: TextInputType.number,
                               decoration: InputDecoration(
-                                labelText: "Capacity",
+                                labelText: "Address",
+                                enabledBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                    color: Appcolors.primaryTextColor,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(
+                            height: 20,
+                          ),
+                          SizedBox(
+                            height: 50,
+                            width: 350,
+                            child: TextField(
+                              controller: _phoneNoController,
+                              keyboardType: TextInputType.phone,
+                              decoration: InputDecoration(
+                                labelText: "Phone No",
+                                enabledBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                    color: Appcolors.primaryTextColor,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(
+                            height: 20,
+                          ),
+                          SizedBox(
+                            height: 50,
+                            width: 350,
+                            child: TextField(
+                              controller: _passwordController,
+                              keyboardType: TextInputType.visiblePassword,
+                              decoration: InputDecoration(
+                                labelText: "Password",
                                 enabledBorder: OutlineInputBorder(
                                   borderSide: BorderSide(
                                     color: Appcolors.primaryTextColor,
@@ -320,7 +374,7 @@ class _AddLecHalleState extends State<AddLecHalle> {
                             height: 20,
                           ),
                           ElevatedButton(
-                            onPressed: _addLecHalls,
+                            onPressed: _addAdmin,
                             child: const Text(
                               "Add",
                               style: TextStyle(

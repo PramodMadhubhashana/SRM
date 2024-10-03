@@ -1,22 +1,27 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:srm/Nonacadamic/nonAcadamicHomePage.dart';
 import 'package:srm/admin/add_lec_halle.dart';
 import 'package:srm/admin/add_lectures.dart';
 import 'package:srm/admin/add_non_acdamic_starff.dart';
 import 'package:srm/admin/add_requiqment.dart';
 import 'package:srm/admin/admin_page.dart';
-import 'package:srm/admin/equiqment.dart';
 import 'package:srm/admin/lecturesList.dart';
 import 'package:srm/admin/reportview.dart';
+
 import 'package:srm/admin/studentList.dart';
+import 'package:srm/lectures/lecturehomepage.dart';
 import 'package:srm/pages/book_equiqment.dart';
 import 'package:srm/pages/book_lec_hall.dart';
+import 'package:srm/pages/msg.dart';
+import 'package:srm/pages/profile.dart';
 import 'package:srm/pages/report.dart';
 import 'package:srm/pages/sidebar.dart';
 import 'package:srm/pages/view_shedule.dart';
 import 'package:srm/sign_in&up/sign_in.dart';
 import 'package:srm/color/appcolors.dart';
+import 'package:srm/sign_in&up/sign_up.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -46,7 +51,7 @@ class MyApp extends StatelessWidget {
             ColorScheme.fromSeed(seedColor: Appcolors.primaryTextColor),
         useMaterial3: true,
       ),
-      home: const BookLecHall(id: "A123"),
+      home: const SignIn(),
     );
   }
 }

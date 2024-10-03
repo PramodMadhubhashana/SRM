@@ -4,6 +4,17 @@ import 'package:srm/pages/homepage.dart';
 import 'package:srm/service/service.dart';
 import 'package:srm/sign_in&up/sign_in.dart';
 import 'package:srm/term_conditions/terms_conditions.dart';
+import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
+
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:srm/color/appcolors.dart';
+
+import 'package:srm/service/service.dart';
 
 class SignUp extends StatefulWidget {
   const SignUp({super.key});
@@ -22,8 +33,11 @@ class _SignUpState extends State<SignUp> {
   final TextEditingController _addressController = TextEditingController();
   final TextEditingController _phoneNoController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  // authService object
+  File? _image;
+  Uint8List? _webImage;
+  final ImagePicker _imagePicker = ImagePicker();
   final AuthService _authService = AuthService();
+  dynamic files;
 
   Future<void> studentData() async {
     String stId = _studentIdController.text.trim();
@@ -76,53 +90,71 @@ class _SignUpState extends State<SignUp> {
             child: CircularProgressIndicator(),
           );
         });
+    String url = await uploadImge(files);
+    if (url != 'Fail') {
+      String result = await _authService.addData(
+          stId, fNme, lNme, email, address, pNo, psd, 'Student', url);
 
-    String result = await _authService.addData(
-        stId, fNme, lNme, email, address, pNo, psd, 'Student');
+      Navigator.of(context).pop();
 
+      if (result == 'Success') {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              "Register Succesfull.",
+              style: TextStyle(
+                color: Colors.greenAccent,
+                fontSize: 16,
+              ),
+            ),
+          ),
+        );
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => Homepage(
+              stId: stId,
+            ),
+          ),
+        );
+        return;
+      }
+      if (result == 'Fail') {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              "Register Fail.",
+              style: TextStyle(
+                color: Colors.greenAccent,
+                fontSize: 16,
+              ),
+            ),
+          ),
+        );
+        return;
+      }
+      if (result == 'available') {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              "Already Registered",
+              style: TextStyle(
+                color: Colors.redAccent,
+                fontSize: 16,
+              ),
+            ),
+          ),
+        );
+        return;
+      }
+      return;
+    }
     Navigator.of(context).pop();
-
-    if (result == 'Success') {
+    if (url == 'Fail') {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            "Register Succesfull.",
-            style: TextStyle(
-              color: Colors.greenAccent,
-              fontSize: 16,
-            ),
-          ),
-        ),
-      );
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => Homepage(
-            stId: stId,
-          ),
-        ),
-      );
-      return;
-    }
-    if (result == 'Fail') {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            "Register Fail.",
-            style: TextStyle(
-              color: Colors.greenAccent,
-              fontSize: 16,
-            ),
-          ),
-        ),
-      );
-      return;
-    }
-    if (result == 'available') {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            "Already Registered",
+            "Imge Upload Fail Try Again.",
             style: TextStyle(
               color: Colors.redAccent,
               fontSize: 16,
@@ -152,19 +184,55 @@ class _SignUpState extends State<SignUp> {
         duration: const Duration(microseconds: 500), curve: Curves.easeIn);
   }
 
+  Future<void> _pickImage() async {
+    if (kIsWeb) {
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.image,
+      );
+      if (result != null) {
+        PlatformFile file = result.files.first;
+        setState(() {
+          _webImage = result.files.first.bytes;
+          files = file;
+        });
+      }
+    } else {
+      final pickedFile =
+          await _imagePicker.pickImage(source: ImageSource.gallery);
+      if (pickedFile != null) {
+        setState(() {
+          _image = File(pickedFile.path); // Store image as File for mobile
+          files = pickedFile;
+        });
+      }
+    }
+  }
+
+  Future<String> uploadImge(dynamic file) async {
+    if (file != null) {
+      try {
+        String url = await _authService.addStudentImage(file);
+        return url;
+      } catch (e) {
+        return 'Fail';
+      }
+    }
+    return 'Fail';
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     const int pages = 3;
     return Scaffold(
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
+      body: SingleChildScrollView(
+        child: SafeArea(
+          child: Center(
             child: Container(
               width: screenWidth > 600 ? 600 : 350,
               constraints: BoxConstraints(
                 maxWidth: screenWidth > 600 ? 600 : 350,
-                maxHeight: screenWidth > 600 ? 550 : 550,
+                maxHeight: screenWidth > 600 ? 600 : 550,
               ),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(15),
@@ -276,7 +344,7 @@ class _SignUpState extends State<SignUp> {
                   ),
                   Padding(
                     padding: const EdgeInsets.only(
-                      top: 20,
+                      top: 80,
                       bottom: 20,
                       left: 30,
                       right: 30,
@@ -496,6 +564,42 @@ class _SignUpState extends State<SignUp> {
                         ),
                         const SizedBox(
                           height: 20,
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            ElevatedButton(
+                              onPressed: _pickImage,
+                              child: const Text(
+                                "Pick Image ",
+                              ),
+                            ),
+                            const SizedBox(
+                              width: 30,
+                            ),
+                            if (!kIsWeb && _image != null)
+                              Image.file(
+                                _image!,
+                                height: 80,
+                                width: 80,
+                                fit: BoxFit.cover,
+                              )
+                            else if (kIsWeb && _webImage != null)
+                              Image.memory(
+                                _webImage!,
+                                height: 80,
+                                width: 80,
+                                fit: BoxFit.cover,
+                              )
+                            else
+                              const Text("No Image Selected"),
+                            const SizedBox(
+                              height: 20,
+                            ),
+                          ],
+                        ),
+                        const SizedBox(
+                          height: 10,
                         ),
                         Row(
                           children: [

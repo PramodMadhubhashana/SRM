@@ -52,7 +52,9 @@ class _BookEquiqmentState extends State<BookEquiqment> {
               ? 'eveningqty'
               : 'fullTimeqty',
       docid[index].toString(),
+      _selectedPeriods[index].toString(),
     );
+
     String? actresult = await _authService.addActivity(
         "$name : ${_selectedPeriods[index]}", widget.id);
     await _authService.addNotification(
@@ -184,7 +186,8 @@ class _BookEquiqmentState extends State<BookEquiqment> {
                                                 Column(
                                                   children: [
                                                     Column(
-                                                      children: _image(),
+                                                      children:
+                                                          _image(eqmt['img']),
                                                     ),
                                                     Row(
                                                       mainAxisAlignment:
@@ -226,7 +229,7 @@ class _BookEquiqmentState extends State<BookEquiqment> {
                                                   MainAxisAlignment.spaceAround,
                                               children: [
                                                 Column(
-                                                  children: _image(),
+                                                  children: _image(eqmt['img']),
                                                 ),
                                                 Column(
                                                   children: [
@@ -276,9 +279,9 @@ class _BookEquiqmentState extends State<BookEquiqment> {
   List<Widget> _list(
       int mqty, int eqty, int qty, int fqty, int index, String name) {
     return [
-      Text("Available Morning : ${qty - mqty}"),
-      Text("Available evening : ${qty - eqty}"),
-      Text("Available Full day : ${qty - (mqty + eqty)}"),
+      Text("Available Morning : ${(qty - (mqty + eqty)) - mqty}"),
+      Text("Available evening : ${(qty - (mqty + eqty)) - eqty}"),
+      Text("Available Full day : ${(qty - (mqty + eqty)) - (mqty + eqty)}"),
       const SizedBox(
         height: 20,
         width: 20,
@@ -313,14 +316,42 @@ class _BookEquiqmentState extends State<BookEquiqment> {
     ];
   }
 
-  List<Widget> _image() {
+  List<Widget> _image(String img) {
     return [
-      Image.asset(
-        "asset/images/wood.jpg",
-        width: 300,
-        height: 300,
-        fit: BoxFit.fitWidth,
-      ),
+      img.isNotEmpty && img != null
+          ? Image.network(
+              img,
+              width: 300,
+              height: 300,
+              fit: BoxFit.fitWidth,
+              loadingBuilder: (BuildContext context, Widget child,
+                  ImageChunkEvent? loadingProgress) {
+                if (loadingProgress == null) {
+                  return child;
+                } else {
+                  return Center(
+                    child: CircularProgressIndicator(
+                      value: loadingProgress.expectedTotalBytes != null
+                          ? loadingProgress.cumulativeBytesLoaded /
+                              (loadingProgress.expectedTotalBytes as double)
+                          : null,
+                    ),
+                  );
+                }
+              },
+              errorBuilder: (BuildContext context, Object exception,
+                  StackTrace? stackTrace) {
+                return const Icon(
+                  Icons.error,
+                  size: 20,
+                  color: Colors.red,
+                );
+              },
+            )
+          : const Icon(
+              Icons.account_circle, // Fallback icon or image
+              size: 20,
+            ),
     ];
   }
 

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:srm/Nonacadamic/nonAcadamicHomePage.dart';
 import 'package:srm/admin/admin_page.dart';
 import 'package:srm/color/appcolors.dart';
+import 'package:srm/lectures/lecturehomepage.dart';
 import 'package:srm/pages/homepage.dart';
 import 'package:srm/service/service.dart';
 import 'package:srm/sign_in&up/sign_up.dart';
@@ -83,7 +85,29 @@ class _SignInState extends State<SignIn> {
             ),
           );
           break;
+        case 'Lecture':
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => Lecturehomepage(id: role['id']),
+            ),
+          );
+          break;
+        case 'Non-Staff':
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => Nonacadamichomepage(id: role['id']),
+            ),
+          );
+          break;
         default:
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const SignIn(),
+            ),
+          );
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(

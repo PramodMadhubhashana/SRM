@@ -18,12 +18,13 @@ class AddRequiqment extends StatefulWidget {
 }
 
 class _AddRequiqmentState extends State<AddRequiqment> {
-  File? _image; // For storing the image on mobile
-  Uint8List? _webImage; // For storing the image on web
+  File? _image;
+  Uint8List? _webImage;
   final ImagePicker _imagePicker = ImagePicker();
   final AuthService _authService = AuthService();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _quantityController = TextEditingController();
+  dynamic files;
 
   Future<void> _addEquiqment() async {
     String name = _nameController.text.trim();
@@ -51,60 +52,93 @@ class _AddRequiqmentState extends State<AddRequiqment> {
             child: CircularProgressIndicator(),
           );
         });
+    String url = await uploadImge(files);
+    if (url != 'Fail') {
+      String result = await _authService.addEquiqment(name, qty, url);
 
-    String result = await _authService.addEquiqment(name, qty);
+      Navigator.of(context).pop();
+      if (result == 'Success') {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              "Add successfull",
+              style: TextStyle(
+                color: Colors.greenAccent,
+                fontSize: 16,
+              ),
+            ),
+          ),
+        );
 
+        return;
+      }
+
+      if (result == 'Fail') {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              "Add Fail.",
+              style: TextStyle(
+                color: Colors.greenAccent,
+                fontSize: 16,
+              ),
+            ),
+          ),
+        );
+        return;
+      }
+
+      if (result == 'Fail') {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              "Register Fail.",
+              style: TextStyle(
+                color: Colors.greenAccent,
+                fontSize: 16,
+              ),
+            ),
+          ),
+        );
+        return;
+      }
+      if (result == 'available') {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              "Already Registered",
+              style: TextStyle(
+                color: Colors.redAccent,
+                fontSize: 16,
+              ),
+            ),
+          ),
+        );
+        return;
+      }
+      if (result == 'Success') {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              "Add successfull",
+              style: TextStyle(
+                color: Colors.greenAccent,
+                fontSize: 16,
+              ),
+            ),
+          ),
+        );
+
+        return;
+      }
+      return;
+    }
     Navigator.of(context).pop();
-    if (result == 'Success') {
+    if (url == 'Fail') {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            "Add successfull",
-            style: TextStyle(
-              color: Colors.greenAccent,
-              fontSize: 16,
-            ),
-          ),
-        ),
-      );
-
-      return;
-    }
-
-    if (result == 'Fail') {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            "Add Fail.",
-            style: TextStyle(
-              color: Colors.greenAccent,
-              fontSize: 16,
-            ),
-          ),
-        ),
-      );
-      return;
-    }
-
-    if (result == 'Fail') {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            "Register Fail.",
-            style: TextStyle(
-              color: Colors.greenAccent,
-              fontSize: 16,
-            ),
-          ),
-        ),
-      );
-      return;
-    }
-    if (result == 'available') {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            "Already Registered",
+            "Imge Upload Fail Try Again.",
             style: TextStyle(
               color: Colors.redAccent,
               fontSize: 16,
@@ -114,48 +148,42 @@ class _AddRequiqmentState extends State<AddRequiqment> {
       );
       return;
     }
-    if (result == 'Success') {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            "Add successfull",
-            style: TextStyle(
-              color: Colors.greenAccent,
-              fontSize: 16,
-            ),
-          ),
-        ),
-      );
-
-      return;
-    }
   }
 
-  // Function to pick image based on platform
   Future<void> _pickImage() async {
     if (kIsWeb) {
-      // Web/PC - Use file picker
       FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.image,
       );
-
       if (result != null) {
+        PlatformFile file = result.files.first;
         setState(() {
-          _webImage =
-              result.files.first.bytes; // Store image as Uint8List for web
+          _webImage = result.files.first.bytes;
+          files = file;
         });
       }
     } else {
-      // Mobile - Use image picker
       final pickedFile =
           await _imagePicker.pickImage(source: ImageSource.gallery);
-
       if (pickedFile != null) {
         setState(() {
           _image = File(pickedFile.path); // Store image as File for mobile
+          files = pickedFile;
         });
       }
     }
+  }
+
+  Future<String> uploadImge(dynamic file) async {
+    if (file != null) {
+      try {
+        String url = await _authService.addEquqmentImage(file);
+        return url;
+      } catch (e) {
+        return 'Fail';
+      }
+    }
+    return 'Fail';
   }
 
   @override
@@ -169,7 +197,9 @@ class _AddRequiqmentState extends State<AddRequiqment> {
               SizedBox(
                 height: screenSize.height,
                 width: 300,
-                child: Sidebar(id: widget.id,),
+                child: Sidebar(
+                  id: widget.id,
+                ),
               ),
             Expanded(
               child: SingleChildScrollView(

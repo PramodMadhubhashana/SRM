@@ -28,6 +28,7 @@ class _AddLecturesState extends State<AddLectures> {
   final TextEditingController _addressController = TextEditingController();
   final TextEditingController _phoneNoController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  dynamic files;
 
   Future<void> _addLectures() async {
     String stId = _lectureIdController.text.trim();
@@ -66,47 +67,65 @@ class _AddLecturesState extends State<AddLectures> {
             child: CircularProgressIndicator(),
           );
         });
+    String url = await uploadImge(files);
 
-    String result = await _authService.addData(
-        stId, fNme, lNme, email, address, pNo, psd, "Lecture");
+    if (url != 'Fail') {
+      String result = await _authService.addData(
+          stId, fNme, lNme, email, address, pNo, psd, "Lecture", url);
 
+      Navigator.of(context).pop();
+
+      if (result == 'Success') {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              "Add successfull",
+              style: TextStyle(
+                color: Colors.greenAccent,
+                fontSize: 16,
+              ),
+            ),
+          ),
+        );
+
+        return;
+      }
+
+      if (result == 'Fail') {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              "Register Fail.",
+              style: TextStyle(
+                color: Colors.redAccent,
+                fontSize: 16,
+              ),
+            ),
+          ),
+        );
+        return;
+      }
+      if (result == 'available') {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              "Already Registered",
+              style: TextStyle(
+                color: Colors.redAccent,
+                fontSize: 16,
+              ),
+            ),
+          ),
+        );
+        return;
+      }
+    }
     Navigator.of(context).pop();
-
-    if (result == 'Success') {
+    if (url == 'Fail') {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            "Add successfull",
-            style: TextStyle(
-              color: Colors.greenAccent,
-              fontSize: 16,
-            ),
-          ),
-        ),
-      );
-
-      return;
-    }
-
-    if (result == 'Fail') {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            "Register Fail.",
-            style: TextStyle(
-              color: Colors.redAccent,
-              fontSize: 16,
-            ),
-          ),
-        ),
-      );
-      return;
-    }
-    if (result == 'available') {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            "Already Registered",
+            "Imge Upload Fail Try Again.",
             style: TextStyle(
               color: Colors.redAccent,
               fontSize: 16,
@@ -118,31 +137,40 @@ class _AddLecturesState extends State<AddLectures> {
     }
   }
 
-  // Function to pick image based on platform
   Future<void> _pickImage() async {
     if (kIsWeb) {
-      // Web/PC - Use file picker
       FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.image,
       );
-
       if (result != null) {
+        PlatformFile file = result.files.first;
         setState(() {
-          _webImage =
-              result.files.first.bytes; // Store image as Uint8List for web
+          _webImage = result.files.first.bytes;
+          files = file;
         });
       }
     } else {
-      // Mobile - Use image picker
       final pickedFile =
           await _imagePicker.pickImage(source: ImageSource.gallery);
-
       if (pickedFile != null) {
         setState(() {
           _image = File(pickedFile.path); // Store image as File for mobile
+          files = pickedFile;
         });
       }
     }
+  }
+
+  Future<String> uploadImge(dynamic file) async {
+    if (file != null) {
+      try {
+        String url = await _authService.addLecturesImage(file);
+        return url;
+      } catch (e) {
+        return 'Fail';
+      }
+    }
+    return 'Fail';
   }
 
   @override

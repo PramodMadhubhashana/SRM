@@ -1,13 +1,7 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:srm/admin/addAdmin.dart';
-import 'package:srm/admin/add_lectures.dart';
-import 'package:srm/admin/add_non_acdamic_starff.dart';
 import 'package:srm/admin/add_requiqment.dart';
-import 'package:srm/admin/adminlist.dart';
 import 'package:srm/admin/equiqmentlist.dart';
-import 'package:srm/admin/lecturesList.dart';
-import 'package:srm/admin/nonstafflist.dart';
-import 'package:srm/admin/reportview.dart';
 import 'package:srm/admin/studentList.dart';
 import 'package:srm/color/appcolors.dart';
 import 'package:srm/pages/book_equiqment.dart';
@@ -15,22 +9,20 @@ import 'package:srm/pages/book_lec_hall.dart';
 import 'package:srm/pages/msg.dart';
 import 'package:srm/pages/notifications.dart';
 import 'package:srm/pages/profile.dart';
-import 'package:srm/pages/report.dart';
 import 'package:srm/pages/sidebar.dart';
 import 'package:srm/pages/view_shedule.dart';
 import 'package:srm/service/service.dart';
-// ignore: depend_on_referenced_packages
 import 'package:intl/intl.dart';
 
-class AdminPage extends StatefulWidget {
-  final String Id;
-  const AdminPage({super.key, required this.Id});
+class Nonacadamichomepage extends StatefulWidget {
+  final String id;
+  const Nonacadamichomepage({super.key, required this.id});
 
   @override
-  State<AdminPage> createState() => _AdminPageState();
+  State<Nonacadamichomepage> createState() => _NonacadamichomepageState();
 }
 
-class _AdminPageState extends State<AdminPage> {
+class _NonacadamichomepageState extends State<Nonacadamichomepage> {
   final AuthService _authservice = AuthService();
   int stdCount = 0;
   int admincount = 0;
@@ -69,18 +61,15 @@ class _AdminPageState extends State<AdminPage> {
     // TODO: implement initState
     super.initState();
     getCounts();
-    getProfileImage();
   }
 
   Future<void> getProfileImage() async {
     try {
-      String? img = await _authservice.getUserImage(widget.Id);
+      String? img = await _authservice.getUserImage(widget.id);
       setState(() {
         url = img;
       });
-    } catch (e) {
-      return;
-    }
+    } catch (e) {}
   }
 
   @override
@@ -95,7 +84,7 @@ class _AdminPageState extends State<AdminPage> {
             SizedBox(
               width: 300,
               height: screenSize.height,
-              child: Sidebar(id: widget.Id),
+              child: Sidebar(id: widget.id),
             ),
           Expanded(
             child: SingleChildScrollView(
@@ -137,8 +126,8 @@ class _AdminPageState extends State<AdminPage> {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => Notifications(
-                                        id: widget.Id,
+                                      builder: (context) => const Notifications(
+                                        id: '',
                                       ),
                                     ),
                                   );
@@ -157,7 +146,7 @@ class _AdminPageState extends State<AdminPage> {
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) =>
-                                          Msg(stId: widget.Id),
+                                          Msg(stId: widget.id),
                                     ),
                                   );
                                 },
@@ -175,54 +164,47 @@ class _AdminPageState extends State<AdminPage> {
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) =>
-                                          Profile(id: widget.Id),
+                                          Profile(id: widget.id),
                                     ),
                                   );
                                 },
                                 child: ClipOval(
-                                  child: url != null
-                                      ? Image.network(
-                                          url!,
-                                          width: 50,
-                                          height: 50,
-                                          fit: BoxFit.fitWidth,
-                                          loadingBuilder: (BuildContext context,
-                                              Widget child,
-                                              ImageChunkEvent?
-                                                  loadingProgress) {
-                                            if (loadingProgress == null) {
-                                              return child;
-                                            } else {
-                                              return Center(
-                                                child:
-                                                    CircularProgressIndicator(
-                                                  value: loadingProgress
-                                                              .expectedTotalBytes !=
-                                                          null
-                                                      ? loadingProgress
-                                                              .cumulativeBytesLoaded /
-                                                          (loadingProgress
-                                                                  .expectedTotalBytes
-                                                              as double)
-                                                      : null,
-                                                ),
-                                              );
-                                            }
-                                          },
-                                          errorBuilder: (BuildContext context,
-                                              Object exception,
-                                              StackTrace? stackTrace) {
-                                            return const Icon(
-                                              Icons.error,
-                                              size: 20,
-                                              color: Colors.red,
-                                            );
-                                          },
-                                        )
-                                      : const Icon(
-                                          Icons.account_circle,
-                                          size: 50,
-                                        ),
+                                  child: Image.network(
+                                    url!,
+                                    width: 300,
+                                    height: 300,
+                                    fit: BoxFit.fitWidth,
+                                    loadingBuilder: (BuildContext context,
+                                        Widget child,
+                                        ImageChunkEvent? loadingProgress) {
+                                      if (loadingProgress == null) {
+                                        return child;
+                                      } else {
+                                        return Center(
+                                          child: CircularProgressIndicator(
+                                            value: loadingProgress
+                                                        .expectedTotalBytes !=
+                                                    null
+                                                ? loadingProgress
+                                                        .cumulativeBytesLoaded /
+                                                    (loadingProgress
+                                                            .expectedTotalBytes
+                                                        as double)
+                                                : null,
+                                          ),
+                                        );
+                                      }
+                                    },
+                                    errorBuilder: (BuildContext context,
+                                        Object exception,
+                                        StackTrace? stackTrace) {
+                                      return const Icon(
+                                        Icons.error,
+                                        size: 20,
+                                        color: Colors.red,
+                                      );
+                                    },
+                                  ),
                                 ),
                               ),
                             ],
@@ -247,7 +229,7 @@ class _AdminPageState extends State<AdminPage> {
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) =>
-                                      BookLecHall(id: widget.Id),
+                                      BookLecHall(id: widget.id),
                                 ),
                               );
                             }),
@@ -257,7 +239,7 @@ class _AdminPageState extends State<AdminPage> {
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) =>
-                                      BookEquiqment(id: widget.Id),
+                                      BookEquiqment(id: widget.id),
                                 ),
                               );
                             }),
@@ -267,7 +249,7 @@ class _AdminPageState extends State<AdminPage> {
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) =>
-                                      ViewShedule(id: widget.Id),
+                                      ViewShedule(id: widget.id),
                                 ),
                               );
                             }),
@@ -277,47 +259,7 @@ class _AdminPageState extends State<AdminPage> {
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) =>
-                                      AddRequiqment(id: widget.Id),
-                                ),
-                              );
-                            }),
-                            _homecart("Students", Icons.person, "$stdCount",
-                                () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) =>
-                                        Studentlist(id: widget.Id)),
-                              );
-                            }),
-                            _homecart("Lectures", Icons.person_4_outlined,
-                                "$lectureCount", () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      Lectureslist(id: widget.Id),
-                                ),
-                              );
-                            }),
-                            _homecart("Non Starff", Icons.person_3_outlined,
-                                "$nonStarffCount", () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      Nonstafflist(id: widget.Id),
-                                ),
-                              );
-                            }),
-                            _homecart(
-                                "Admin", Icons.person_4_rounded, "$admincount",
-                                () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      Adminlist(id: widget.Id),
+                                      AddRequiqment(id: widget.id),
                                 ),
                               );
                             }),
@@ -329,49 +271,10 @@ class _AdminPageState extends State<AdminPage> {
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) =>
-                                      Equiqmentlist(id: widget.Id),
+                                      Equiqmentlist(id: widget.id),
                                 ),
                               );
                             }),
-                            if (screenSize.width < 600)
-                              _homecart(
-                                  "Add Lectures",
-                                  Icons.settings_input_component_outlined,
-                                  "", () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        AddLectures(id: widget.Id),
-                                  ),
-                                );
-                              }),
-                            if (screenSize.width < 600)
-                              _homecart(
-                                  "Add Admin",
-                                  Icons.settings_input_component_outlined,
-                                  "", () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        Addadmin(id: widget.Id),
-                                  ),
-                                );
-                              }),
-                            if (screenSize.width < 600)
-                              _homecart(
-                                  "Add Non acadamic staff",
-                                  Icons.settings_input_component_outlined,
-                                  "", () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        AddNonAcdamicStarff(id: widget.Id),
-                                  ),
-                                );
-                              }),
                             if (screenSize.width < 600)
                               _homecart(
                                   "Add Equiqments",
@@ -381,20 +284,7 @@ class _AdminPageState extends State<AdminPage> {
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) =>
-                                        AddRequiqment(id: widget.Id),
-                                  ),
-                                );
-                              }),
-                            if (screenSize.width < 600)
-                              _homecart(
-                                  "View Report",
-                                  Icons.settings_input_component_outlined,
-                                  "", () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        Reportview(id: widget.Id),
+                                        AddRequiqment(id: widget.id),
                                   ),
                                 );
                               }),
@@ -429,7 +319,7 @@ class _AdminPageState extends State<AdminPage> {
                               height: 500,
                               width: screenSize.width,
                               child: StreamBuilder(
-                                stream: _authservice.getActivity(widget.Id),
+                                stream: _authservice.getActivity(widget.id),
                                 builder: (context, snapshot) {
                                   if (!snapshot.hasData) {
                                     return const Center(

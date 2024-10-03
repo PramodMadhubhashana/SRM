@@ -20,6 +20,7 @@ class _ViewSheduleState extends State<ViewShedule> {
   late CalendarFormat _calendarFormat = CalendarFormat.month;
   final AuthService _authService = AuthService();
   final TextEditingController _titleController = TextEditingController();
+  List<DateTime> scheduleDyas = [];
 
   Future<void> addShedule() async {
     String _title = _titleController.text.trim();
@@ -47,6 +48,12 @@ class _ViewSheduleState extends State<ViewShedule> {
         content: Text(result == "Succesful" ? "Add Succesful." : "Add fail"),
       ),
     );
+  }
+
+  bool _isSameDate(DateTime date1, DateTime date2) {
+    return date1.year == date2.year &&
+        date1.month == date2.month &&
+        date1.day == date2.day;
   }
 
   @override
@@ -82,6 +89,24 @@ class _ViewSheduleState extends State<ViewShedule> {
                         availableCalendarFormats: const {
                           CalendarFormat.month: '1 Month',
                         },
+                        calendarBuilders: CalendarBuilders(
+                          defaultBuilder: (context, day, focusedDay) {
+                            if (scheduleDyas.any(
+                                (bookedDate) => _isSameDate(bookedDate, day))) {
+                              return Container(
+                                decoration: const BoxDecoration(
+                                  color: Colors.redAccent,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Center(
+                                    child: Text(day.day.toString(),
+                                        style: const TextStyle(
+                                            color: Colors.white))),
+                              );
+                            }
+                            return null;
+                          },
+                        ),
                         selectedDayPredicate: (day) {
                           return isSameDay(_selectedDay, day);
                         },
@@ -165,6 +190,7 @@ class _ViewSheduleState extends State<ViewShedule> {
                                 DateTime dateTime = DateTime.parse(dateString);
                                 String formattedDateTime =
                                     DateFormat('yyyy-MM-dd').format(dateTime);
+                                scheduleDyas.add(dateTime);
 
                                 return Card(
                                   margin: const EdgeInsets.all(10),
@@ -200,7 +226,7 @@ class _ViewSheduleState extends State<ViewShedule> {
                                                 final result =
                                                     await _authService
                                                         .deleteSchedule(
-                                                            scheduleid);
+                                                            items[index].id);
 
                                                 ScaffoldMessenger.of(context)
                                                     .showSnackBar(

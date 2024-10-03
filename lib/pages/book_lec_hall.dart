@@ -133,6 +133,7 @@ class _BookLecHallState extends State<BookLecHall> {
               ),
             Expanded(
               child: SingleChildScrollView(
+                physics: const ScrollPhysics(parent: BouncingScrollPhysics()),
                 child: Padding(
                   padding: const EdgeInsets.all(20.0),
                   child: Column(
@@ -205,7 +206,8 @@ class _BookLecHallState extends State<BookLecHall> {
                                                       MainAxisAlignment.center,
                                                   children: _buildChildrens(
                                                       index,
-                                                      lecHall['Halle Name']),
+                                                      lecHall['Halle Name'],
+                                                      lecHall['img']),
                                                 )
                                               : Row(
                                                   mainAxisAlignment:
@@ -213,7 +215,8 @@ class _BookLecHallState extends State<BookLecHall> {
                                                           .spaceAround,
                                                   children: _buildChildrens(
                                                       index,
-                                                      lecHall['Halle Name']),
+                                                      lecHall['Halle Name'],
+                                                      lecHall['img']),
                                                 );
                                         },
                                       ),
@@ -295,6 +298,9 @@ class _BookLecHallState extends State<BookLecHall> {
                                                 _selectPeriod[index].toString(),
                                                 widget.id,
                                               );
+                                              await _authService.addActivity(
+                                                  "Booked Lec Halle : ${lecHall['Halle Name']} to ${DateFormat('yyyy-MM-dd').format(_selectedDay[index]!)}",
+                                                  widget.id);
 
                                               Navigator.of(context).pop();
                                               ScaffoldMessenger.of(context)
@@ -397,14 +403,42 @@ class _BookLecHallState extends State<BookLecHall> {
     ];
   }
 
-  List<Widget> _buildChildrens(int index, String hallname) {
+  List<Widget> _buildChildrens(int index, String hallname, String img) {
     return [
-      Image.asset(
-        "asset/images/wood.jpg",
-        width: 300,
-        height: 300,
-        fit: BoxFit.fitWidth,
-      ),
+      img.isNotEmpty && img != null
+          ? Image.network(
+              img,
+              width: 300,
+              height: 300,
+              fit: BoxFit.fitWidth,
+              loadingBuilder: (BuildContext context, Widget child,
+                  ImageChunkEvent? loadingProgress) {
+                if (loadingProgress == null) {
+                  return child;
+                } else {
+                  return Center(
+                    child: CircularProgressIndicator(
+                      value: loadingProgress.expectedTotalBytes != null
+                          ? loadingProgress.cumulativeBytesLoaded /
+                              (loadingProgress.expectedTotalBytes as double)
+                          : null,
+                    ),
+                  );
+                }
+              },
+              errorBuilder: (BuildContext context, Object exception,
+                  StackTrace? stackTrace) {
+                return const Icon(
+                  Icons.error,
+                  size: 20,
+                  color: Colors.red,
+                );
+              },
+            )
+          : const Icon(
+              Icons.error,
+              size: 20,
+            ),
       SizedBox(
         height: 400,
         width: 300,

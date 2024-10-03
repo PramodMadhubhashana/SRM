@@ -1,6 +1,11 @@
+import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:path/path.dart';
+import 'dart:typed_data';
 
 class AuthService {
   CollectionReference users = FirebaseFirestore.instance.collection('users');
@@ -24,7 +29,10 @@ class AuthService {
 
   CollectionReference equiqments =
       FirebaseFirestore.instance.collection("Equiqment List");
+
   CollectionReference report = FirebaseFirestore.instance.collection("Report");
+
+  FirebaseStorage storage = FirebaseStorage.instance;
 
 // Sign in
   Future<Map<String, dynamic>> signInWithIdAndPassword(
@@ -63,7 +71,7 @@ class AuthService {
 
 // Add the users Data
   Future<String> addData(String stId, String fNme, String lNme, String email,
-      String address, String pNo, String psd, String role) async {
+      String address, String pNo, String psd, String role, String img) async {
     try {
       DocumentSnapshot documentSnapshot = await users.doc(stId).get();
       if (documentSnapshot.exists) {
@@ -80,6 +88,7 @@ class AuthService {
           'Password': psd,
           'role': role,
           'Register Date': DateTime.now(),
+          'img': img
         },
       );
       return 'Success';
@@ -117,6 +126,19 @@ class AuthService {
       DocumentSnapshot snapshot = await users.doc(userId).get();
       if (snapshot.exists) {
         return snapshot;
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+  // imge user
+
+  Future<String?> getUserImage(String userId) async {
+    try {
+      DocumentSnapshot snapshot = await users.doc(userId).get();
+      if (snapshot.exists) {
+        return (snapshot.data() as Map<String, dynamic>?)?['img'] as String?;
       }
       return null;
     } catch (e) {
@@ -257,33 +279,6 @@ class AuthService {
     });
   }
 
-  // Future<String> booklechalls(
-  //     String HalleName, DateTime date, String period, String id) async {
-  //   try {
-  //     QuerySnapshot querySnapshot = await bookLecHalle
-  //         .where('hallId', isEqualTo: HalleName)
-  //         .where('date', isEqualTo: date)
-  //         .where('id', isEqualTo: id)
-  //         .where('period', isEqualTo: period)
-  //         .get();
-  //     if (querySnapshot.docs.isNotEmpty) {
-  //       return "booking found";
-  //     }
-  //     await bookLecHalle.add({
-  //       'hallId': HalleName,
-  //       'date': date,
-  //       'period': period,
-  //       'id': id,
-  //       'createdAt': DateTime.now(),
-  //     });
-
-  //     return 'Successful';
-  //   } catch (e) {
-  //     print('Error booking hall: $e');
-  //     return 'Fail';
-  //   }
-  // }
-
   Future<QuerySnapshot> bookDate() async {
     return await bookLecHalle.get();
   }
@@ -384,6 +379,17 @@ class AuthService {
     }
   }
 
+  Future<int> adminCount() async {
+    try {
+      QuerySnapshot snapshot =
+          await users.where('role', isEqualTo: 'Admin').get();
+      int count = snapshot.size;
+      return count;
+    } catch (e) {
+      return 0;
+    }
+  }
+
   // return lecture Count
   Future<int> lecturetCount() async {
     try {
@@ -411,7 +417,7 @@ class AuthService {
 // add the lecture hall
 
   Future<String> addHalle(String name, String computer, String chairs,
-      String desk, String capacity) async {
+      String desk, String capacity, String img) async {
     try {
       await hallDetails.add(
         {
@@ -420,6 +426,7 @@ class AuthService {
           'chairs': chairs,
           'computers': computer,
           'Desk': desk,
+          'img': img
         },
       );
       return 'Success';
@@ -429,15 +436,17 @@ class AuthService {
   }
 
   // add equiqment
-  Future<String> addEquiqment(String name, String qty) async {
+  Future<String> addEquiqment(String name, String qty, String img) async {
     try {
       await equiqments.add(
         {
           'Name': name,
-          'qty': qty,
+          'date': DateTime.now(),
+          'qty': int.parse(qty),
           'morningqty': 0,
           'eveningqty': 0,
           'fullTimeqty': 0,
+          'img': img
         },
       );
       return 'Success';
@@ -447,11 +456,36 @@ class AuthService {
   }
 
   // book equiqment
-  Future<String> bookEquiqment(int qty, String name, String id) async {
+  Future<String> bookEquiqment(
+      int qty, String name, String id, String period) async {
     try {
-      await equiqments.doc(id).update(
-        {name: qty},
-      );
+      DocumentReference userDoc = equiqments.doc(id);
+      await userDoc.update({
+        'Booked Details': FieldValue.arrayUnion([
+          {
+            name: qty,
+            'Period': period,
+            'date': DateTime.now(),
+          }
+        ]),
+      }).catchError((error) {
+        if (error is FirebaseException && error.code == 'not-found') {
+          userDoc.set({
+            'Booked Details': [
+              {
+                name: qty,
+                'Period': period,
+                'date': DateTime.now(),
+              }
+            ],
+          });
+        } else {
+          if (kDebugMode) {
+            print('Failed to add notification: $error');
+          }
+        }
+      });
+
       return 'Success';
     } catch (e) {
       return 'Fail';
@@ -495,6 +529,16 @@ class AuthService {
     return users.where('role', isEqualTo: 'Student').snapshots();
   }
 
+// admin details
+  Stream<QuerySnapshot> getadmin() {
+    return users.where('role', isEqualTo: 'Admin').snapshots();
+  }
+
+  // get equiqmennt
+  Stream<QuerySnapshot> getequiqment() {
+    return equiqments.snapshots();
+  }
+
   // return lectures
   Stream<QuerySnapshot> getlectures() {
     return users.where('role', isEqualTo: 'Lecture').snapshots();
@@ -502,7 +546,7 @@ class AuthService {
 
   // return non acadmic staff
   Stream<QuerySnapshot> getnonacadmicstaff() {
-    return users.where('role', isEqualTo: 'Lecture').snapshots();
+    return users.where('role', isEqualTo: 'Non-Staff').snapshots();
   }
 
   // delete users
@@ -515,14 +559,295 @@ class AuthService {
     }
   }
 
-  // Delete Schedule
-  Future<String> deleteSchedule(String id) async {
+  // delete Equiqmets
+  Future<String> deleteQuiqments(String id) async {
     try {
-      final result = await Schedule.doc(id).delete();
+      await equiqments.doc(id).delete();
 
       return "Succesfull";
     } catch (e) {
       return 'Error';
+    }
+  }
+
+  // Delete Schedule
+  Future<String> deleteSchedule(String id) async {
+    try {
+      await Schedule.doc(id).delete();
+
+      return "Succesfull";
+    } catch (e) {
+      return 'Error';
+    }
+  }
+
+  Future<String> deletemsg(String id) async {
+    try {
+      await message.doc(id).delete();
+      return "Succesfull";
+    } catch (e) {
+      return 'Error';
+    }
+  }
+
+  // upload add lec hall, lec hall image,
+
+  Future<String> addLecHalleImage(dynamic file) async {
+    try {
+      String filename;
+      String fileExtensions;
+      if (kIsWeb) {
+        filename = file.name;
+        fileExtensions = filename.split('.').last;
+      } else {
+        File mobileFile = file;
+        filename = basename(mobileFile.path);
+        fileExtensions = filename.split(".").last;
+      }
+      String filePath =
+          'lectureHalls/${DateTime.now().millisecondsSinceEpoch}.$fileExtensions';
+
+      String mimeType = _getMimeType(fileExtensions);
+
+      if (kIsWeb) {
+        Uint8List fileBytes = file.bytes;
+        TaskSnapshot snapshot = await storage
+            .ref(filePath)
+            .putData(fileBytes, SettableMetadata(contentType: mimeType));
+
+        String? downloadurl = await snapshot.ref.getDownloadURL();
+
+        return downloadurl;
+      } else {
+        File mobileFile = file;
+        TaskSnapshot taskSnapshot = await storage
+            .ref(filePath)
+            .putFile(mobileFile, SettableMetadata(contentType: mimeType));
+        String? url = await taskSnapshot.ref.getDownloadURL();
+        return url;
+      }
+    } catch (e) {
+      return "Fail";
+    }
+  }
+
+  // add admin image
+
+  Future<String> addAdminImage(dynamic file) async {
+    try {
+      String filename;
+      String fileExtensions;
+      if (kIsWeb) {
+        filename = file.name;
+        fileExtensions = filename.split('.').last;
+      } else {
+        File mobileFile = file;
+        filename = basename(mobileFile.path);
+        fileExtensions = filename.split(".").last;
+      }
+      String filePath =
+          'adminImage/${DateTime.now().millisecondsSinceEpoch}.$fileExtensions';
+
+      String mimeType = _getMimeType(fileExtensions);
+
+      if (kIsWeb) {
+        Uint8List fileBytes = file.bytes;
+        TaskSnapshot snapshot = await storage
+            .ref(filePath)
+            .putData(fileBytes, SettableMetadata(contentType: mimeType));
+
+        String? downloadurl = await snapshot.ref.getDownloadURL();
+
+        return downloadurl;
+      } else {
+        File mobileFile = file;
+        TaskSnapshot taskSnapshot = await storage
+            .ref(filePath)
+            .putFile(mobileFile, SettableMetadata(contentType: mimeType));
+        String? url = await taskSnapshot.ref.getDownloadURL();
+        return url;
+      }
+    } catch (e) {
+      return "Fail";
+    }
+  }
+
+  // add lectures imge
+
+  Future<String> addLecturesImage(dynamic file) async {
+    try {
+      String filename;
+      String fileExtensions;
+      if (kIsWeb) {
+        filename = file.name;
+        fileExtensions = filename.split('.').last;
+      } else {
+        File mobileFile = file;
+        filename = basename(mobileFile.path);
+        fileExtensions = filename.split(".").last;
+      }
+      String filePath =
+          'lectursImage/${DateTime.now().millisecondsSinceEpoch}.$fileExtensions';
+
+      String mimeType = _getMimeType(fileExtensions);
+
+      if (kIsWeb) {
+        Uint8List fileBytes = file.bytes;
+        TaskSnapshot snapshot = await storage
+            .ref(filePath)
+            .putData(fileBytes, SettableMetadata(contentType: mimeType));
+
+        String? downloadurl = await snapshot.ref.getDownloadURL();
+
+        return downloadurl;
+      } else {
+        File mobileFile = file;
+        TaskSnapshot taskSnapshot = await storage
+            .ref(filePath)
+            .putFile(mobileFile, SettableMetadata(contentType: mimeType));
+        String? url = await taskSnapshot.ref.getDownloadURL();
+        return url;
+      }
+    } catch (e) {
+      return "Fail";
+    }
+  }
+
+  // add non acadmic imge
+
+  Future<String> addNonAcadsmicStaffImage(dynamic file) async {
+    try {
+      String filename;
+      String fileExtensions;
+      if (kIsWeb) {
+        filename = file.name;
+        fileExtensions = filename.split('.').last;
+      } else {
+        File mobileFile = file;
+        filename = basename(mobileFile.path);
+        fileExtensions = filename.split(".").last;
+      }
+      String filePath =
+          'NonAcadamicImage/${DateTime.now().millisecondsSinceEpoch}.$fileExtensions';
+
+      String mimeType = _getMimeType(fileExtensions);
+
+      if (kIsWeb) {
+        Uint8List fileBytes = file.bytes;
+        TaskSnapshot snapshot = await storage
+            .ref(filePath)
+            .putData(fileBytes, SettableMetadata(contentType: mimeType));
+
+        String? downloadurl = await snapshot.ref.getDownloadURL();
+
+        return downloadurl;
+      } else {
+        File mobileFile = file;
+        TaskSnapshot taskSnapshot = await storage
+            .ref(filePath)
+            .putFile(mobileFile, SettableMetadata(contentType: mimeType));
+        String? url = await taskSnapshot.ref.getDownloadURL();
+        return url;
+      }
+    } catch (e) {
+      return "Fail";
+    }
+  }
+
+  // atudent imge
+  Future<String> addStudentImage(dynamic file) async {
+    try {
+      String filename;
+      String fileExtensions;
+      if (kIsWeb) {
+        filename = file.name;
+        fileExtensions = filename.split('.').last;
+      } else {
+        File mobileFile = file;
+        filename = basename(mobileFile.path);
+        fileExtensions = filename.split(".").last;
+      }
+      String filePath =
+          'studentImage/${DateTime.now().millisecondsSinceEpoch}.$fileExtensions';
+
+      String mimeType = _getMimeType(fileExtensions);
+
+      if (kIsWeb) {
+        Uint8List fileBytes = file.bytes;
+        TaskSnapshot snapshot = await storage
+            .ref(filePath)
+            .putData(fileBytes, SettableMetadata(contentType: mimeType));
+
+        String? downloadurl = await snapshot.ref.getDownloadURL();
+
+        return downloadurl;
+      } else {
+        File mobileFile = file;
+        TaskSnapshot taskSnapshot = await storage
+            .ref(filePath)
+            .putFile(mobileFile, SettableMetadata(contentType: mimeType));
+        String? url = await taskSnapshot.ref.getDownloadURL();
+        return url;
+      }
+    } catch (e) {
+      return "Fail";
+    }
+  }
+
+  Future<String> addEquqmentImage(dynamic file) async {
+    try {
+      String filename;
+      String fileExtensions;
+      if (kIsWeb) {
+        filename = file.name;
+        fileExtensions = filename.split('.').last;
+      } else {
+        File mobileFile = file;
+        filename = basename(mobileFile.path);
+        fileExtensions = filename.split(".").last;
+      }
+      String filePath =
+          'equqmentImage/${DateTime.now().millisecondsSinceEpoch}.$fileExtensions';
+
+      String mimeType = _getMimeType(fileExtensions);
+
+      if (kIsWeb) {
+        Uint8List fileBytes = file.bytes;
+        TaskSnapshot snapshot = await storage
+            .ref(filePath)
+            .putData(fileBytes, SettableMetadata(contentType: mimeType));
+
+        String downloadurl = await snapshot.ref.getDownloadURL();
+
+        return downloadurl;
+      } else {
+        File mobileFile = file;
+        TaskSnapshot taskSnapshot = await storage
+            .ref(filePath)
+            .putFile(mobileFile, SettableMetadata(contentType: mimeType));
+        String? url = await taskSnapshot.ref.getDownloadURL();
+        return url;
+      }
+    } catch (e) {
+      return "Fail";
+    }
+  }
+
+  String _getMimeType(String fileextention) {
+    switch (fileextention.toLowerCase()) {
+      case 'jpg':
+      case 'jpeg':
+        return 'image/jpeg';
+      case 'png':
+        return 'image/png';
+      case 'gif':
+        return 'image/gif';
+      case 'bmp':
+        return 'image/bmp';
+      case 'webp':
+        return 'image/webp';
+      default:
+        return 'application/octet-stream';
     }
   }
 }

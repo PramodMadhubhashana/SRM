@@ -1,33 +1,32 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
-import 'package:flutter/widgets.dart';
 import 'package:srm/color/appcolors.dart';
 import 'package:srm/pages/book_equiqment.dart';
 import 'package:srm/pages/book_lec_hall.dart';
 import 'package:srm/pages/msg.dart';
 import 'package:srm/pages/notifications.dart';
 import 'package:srm/pages/profile.dart';
+import 'package:srm/pages/report.dart';
 import 'package:srm/pages/sidebar.dart';
 import 'package:srm/pages/view_shedule.dart';
 import 'package:srm/service/service.dart';
+import 'package:srm/service/service.dart';
 import 'package:intl/intl.dart';
 
-class Homepage extends StatefulWidget {
-  final String stId;
-
-  const Homepage({super.key, required this.stId});
+class Lecturehomepage extends StatefulWidget {
+  final String id;
+  const Lecturehomepage({super.key, required this.id});
 
   @override
-  State<Homepage> createState() => _HomepageState();
+  State<Lecturehomepage> createState() => _LecturehomepageState();
 }
 
-class _HomepageState extends State<Homepage> {
+class _LecturehomepageState extends State<Lecturehomepage> {
   final AuthService _authservice = AuthService();
   int hallCount = 0;
   int schlCount = 0;
   int eqmttCount = 0;
   String? url;
-
   @override
   void initState() {
     // TODO: implement initState
@@ -35,7 +34,15 @@ class _HomepageState extends State<Homepage> {
     hallcount();
     equiqmentCount();
     scheduleCount();
-    getProfileImage();
+  }
+
+  Future<void> getProfileImage() async {
+    try {
+      String? img = await _authservice.getUserImage(widget.id);
+      setState(() {
+        url = img;
+      });
+    } catch (e) {}
   }
 
   Future<void> hallcount() async {
@@ -43,17 +50,6 @@ class _HomepageState extends State<Homepage> {
       final int cnt = await _authservice.lecHalleCount();
       setState(() {
         hallCount = cnt;
-      });
-    } catch (e) {
-      return;
-    }
-  }
-
-  Future<void> getProfileImage() async {
-    try {
-      String? img = await _authservice.getUserImage(widget.stId);
-      setState(() {
-        url = img;
       });
     } catch (e) {
       return;
@@ -96,7 +92,7 @@ class _HomepageState extends State<Homepage> {
                 width: 300,
                 height: screenSize.height,
                 child: Sidebar(
-                  id: widget.stId,
+                  id: widget.id,
                 ),
               ),
             Expanded(
@@ -140,7 +136,7 @@ class _HomepageState extends State<Homepage> {
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) =>
-                                            Notifications(id: widget.stId),
+                                            Notifications(id: widget.id),
                                       ),
                                     );
                                   },
@@ -158,7 +154,7 @@ class _HomepageState extends State<Homepage> {
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) => Msg(
-                                          stId: widget.stId,
+                                          stId: widget.id,
                                         ),
                                       ),
                                     );
@@ -177,56 +173,47 @@ class _HomepageState extends State<Homepage> {
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) =>
-                                            Profile(id: widget.stId),
+                                            Profile(id: widget.id),
                                       ),
                                     );
                                   },
                                   child: ClipOval(
-                                    child: url != null
-                                        ? Image.network(
-                                            url!,
-                                            width: 50,
-                                            height: 50,
-                                            fit: BoxFit.fitWidth,
-                                            loadingBuilder:
-                                                (BuildContext context,
-                                                    Widget child,
-                                                    ImageChunkEvent?
-                                                        loadingProgress) {
-                                              if (loadingProgress == null) {
-                                                return child;
-                                              } else {
-                                                return Center(
-                                                  child:
-                                                      CircularProgressIndicator(
-                                                    value: loadingProgress
-                                                                .expectedTotalBytes !=
-                                                            null
-                                                        ? loadingProgress
-                                                                .cumulativeBytesLoaded /
-                                                            (loadingProgress
-                                                                    .expectedTotalBytes
-                                                                as double)
-                                                        : null,
-                                                  ),
-                                                );
-                                              }
-                                            },
-                                            errorBuilder: (BuildContext context,
-                                                Object exception,
-                                                StackTrace? stackTrace) {
-                                              return const Icon(
-                                                Icons.error,
-                                                size: 50,
-                                                color: Colors.red,
-                                              );
-                                            },
-                                          )
-                                        : const Icon(
-                                            Icons
-                                                .account_circle, // Fallback icon or image
-                                            size: 20,
-                                          ),
+                                    child: Image.network(
+                                      url!,
+                                      width: 300,
+                                      height: 300,
+                                      fit: BoxFit.fitWidth,
+                                      loadingBuilder: (BuildContext context,
+                                          Widget child,
+                                          ImageChunkEvent? loadingProgress) {
+                                        if (loadingProgress == null) {
+                                          return child;
+                                        } else {
+                                          return Center(
+                                            child: CircularProgressIndicator(
+                                              value: loadingProgress
+                                                          .expectedTotalBytes !=
+                                                      null
+                                                  ? loadingProgress
+                                                          .cumulativeBytesLoaded /
+                                                      (loadingProgress
+                                                              .expectedTotalBytes
+                                                          as double)
+                                                  : null,
+                                            ),
+                                          );
+                                        }
+                                      },
+                                      errorBuilder: (BuildContext context,
+                                          Object exception,
+                                          StackTrace? stackTrace) {
+                                        return const Icon(
+                                          Icons.error,
+                                          size: 20,
+                                          color: Colors.red,
+                                        );
+                                      },
+                                    ),
                                   ),
                                 ),
                               ],
@@ -255,7 +242,7 @@ class _HomepageState extends State<Homepage> {
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) =>
-                                        BookLecHall(id: widget.stId),
+                                        BookLecHall(id: widget.id),
                                   ),
                                 );
                               }),
@@ -269,7 +256,7 @@ class _HomepageState extends State<Homepage> {
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) => BookLecHall(
-                                        id: widget.stId,
+                                        id: widget.id,
                                       ),
                                     ),
                                   );
@@ -285,7 +272,23 @@ class _HomepageState extends State<Homepage> {
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) => ViewShedule(
-                                        id: widget.stId,
+                                        id: widget.id,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                              _homecart(
+                                "Report",
+                                Icons.schedule_outlined,
+                                "",
+                                "Add Report",
+                                () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => Report(
+                                        id: widget.id,
                                       ),
                                     ),
                                   );
@@ -301,7 +304,7 @@ class _HomepageState extends State<Homepage> {
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) => BookEquiqment(
-                                        id: widget.stId,
+                                        id: widget.id,
                                       ),
                                     ),
                                   );
@@ -338,7 +341,7 @@ class _HomepageState extends State<Homepage> {
                                 height: 500,
                                 width: screenSize.width,
                                 child: StreamBuilder(
-                                  stream: _authservice.getActivity(widget.stId),
+                                  stream: _authservice.getActivity(widget.id),
                                   builder: (context, snapshot) {
                                     if (!snapshot.hasData) {
                                       return const Center(
@@ -347,9 +350,10 @@ class _HomepageState extends State<Homepage> {
                                     }
                                     var items = snapshot.data!.docs;
                                     return ListView.builder(
-                                      physics:
-                                          const NeverScrollableScrollPhysics(),
-                                      shrinkWrap: true,
+                                      physics: const ScrollPhysics(
+                                        parent: ScrollPhysics(
+                                            parent: BouncingScrollPhysics()),
+                                      ),
                                       itemCount: items.length,
                                       itemBuilder: (context, index) {
                                         var item = items[index].data()

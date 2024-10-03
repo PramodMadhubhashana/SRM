@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:srm/admin/addAdmin.dart';
 import 'package:srm/admin/add_lec_halle.dart';
 import 'package:srm/admin/add_lectures.dart';
 import 'package:srm/admin/add_non_acdamic_starff.dart';
@@ -9,6 +10,7 @@ import 'package:srm/admin/reportview.dart';
 import 'package:srm/color/appcolors.dart';
 import 'package:srm/pages/book_equiqment.dart';
 import 'package:srm/pages/book_lec_hall.dart';
+import 'package:srm/pages/homepage.dart';
 import 'package:srm/pages/msg.dart';
 import 'package:srm/pages/notifications.dart';
 import 'package:srm/pages/profile.dart';
@@ -58,7 +60,6 @@ class _SidebarState extends State<Sidebar> {
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
                     "WELCOME - SRM",
@@ -71,45 +72,311 @@ class _SidebarState extends State<Sidebar> {
                   const SizedBox(
                     height: 30,
                   ),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.home,
-                        color: Colors.white,
-                      ),
-                      const SizedBox(
-                        width: 5,
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => AdminPage(Id: widget.id),
-                            ),
-                          );
-                        },
-                        child: const Text(
-                          "Home",
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  if (role == 'Admin')
-                    Column(
+                  SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           children: [
                             const Icon(
-                              Icons.meeting_room_outlined,
+                              Icons.home,
+                              color: Colors.white,
+                            ),
+                            const SizedBox(
+                              width: 5,
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => role == 'Admin'
+                                        ? AdminPage(Id: widget.id)
+                                        : Homepage(stId: widget.id),
+                                  ),
+                                );
+                              },
+                              child: const Text(
+                                "Home",
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(
+                          height: 10,
+                        ),
+                        if (role == 'Admin')
+                          Column(
+                            children: [
+                              Row(
+                                children: [
+                                  const Icon(
+                                    Icons.meeting_room_outlined,
+                                    color: Colors.white,
+                                  ),
+                                  const SizedBox(
+                                    width: 5,
+                                  ),
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              AddLecHalle(id: widget.id),
+                                        ),
+                                      );
+                                    },
+                                    child: const Text(
+                                      "add Lecture Halle",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(
+                                height: 10,
+                              ),
+                            ],
+                          ),
+                        if (role == 'Admin')
+                          Column(
+                            children: [
+                              Row(
+                                children: [
+                                  const Icon(
+                                    Icons.person_4_outlined,
+                                    color: Colors.white,
+                                  ),
+                                  const SizedBox(
+                                    width: 5,
+                                  ),
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              AddLectures(id: widget.id),
+                                        ),
+                                      );
+                                    },
+                                    child: const Text(
+                                      "Add Lectures",
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(
+                                height: 10,
+                              ),
+                            ],
+                          ),
+                        if (role == 'Admin')
+                          Column(
+                            children: [
+                              Row(
+                                children: [
+                                  const Icon(
+                                    Icons.person_3_outlined,
+                                    color: Colors.white,
+                                  ),
+                                  const SizedBox(
+                                    width: 5,
+                                  ),
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              AddNonAcdamicStarff(
+                                                  id: widget.id),
+                                        ),
+                                      );
+                                    },
+                                    child: const Text(
+                                      "Add Non Acadamic staff",
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(
+                                height: 10,
+                              ),
+                            ],
+                          ),
+                        if (role == 'Admin')
+                          Column(
+                            children: [
+                              Row(
+                                children: [
+                                  const Icon(
+                                    Icons.person_3_outlined,
+                                    color: Colors.white,
+                                  ),
+                                  const SizedBox(
+                                    width: 5,
+                                  ),
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              Addadmin(id: widget.id),
+                                        ),
+                                      );
+                                    },
+                                    child: const Text(
+                                      "Add Admin",
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(
+                                height: 10,
+                              ),
+                            ],
+                          ),
+                        if (role == 'Admin')
+                          Column(
+                            children: [
+                              Row(
+                                children: [
+                                  const Icon(
+                                    Icons.settings_input_component,
+                                    color: Colors.white,
+                                  ),
+                                  const SizedBox(
+                                    width: 5,
+                                  ),
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              AddRequiqment(id: widget.id),
+                                        ),
+                                      );
+                                    },
+                                    child: const Text(
+                                      "Add Equiqment",
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(
+                                height: 10,
+                              ),
+                            ],
+                          ),
+                        if (role == 'Admin')
+                          Column(
+                            children: [
+                              Row(
+                                children: [
+                                  const Icon(
+                                    Icons.report,
+                                    color: Colors.white,
+                                  ),
+                                  const SizedBox(
+                                    width: 5,
+                                  ),
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              Reportview(id: widget.id),
+                                        ),
+                                      );
+                                    },
+                                    child: const Text(
+                                      "Report View",
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(
+                                height: 10,
+                              ),
+                            ],
+                          ),
+                        if (role == 'Lecture')
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.report_problem,
+                                color: Colors.white,
+                              ),
+                              const SizedBox(
+                                width: 5,
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          Report(id: widget.id),
+                                    ),
+                                  );
+                                },
+                                child: const Text(
+                                  "Add Report",
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        const SizedBox(
+                          height: 10,
+                        ),
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.settings_input_composite_outlined,
                               color: Colors.white,
                             ),
                             const SizedBox(
@@ -121,12 +388,12 @@ class _SidebarState extends State<Sidebar> {
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) =>
-                                        AddLecHalle(id: widget.id),
+                                        BookEquiqment(id: widget.id),
                                   ),
                                 );
                               },
                               child: const Text(
-                                "add Lecture Halle",
+                                "Book Equiqment",
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 18,
@@ -139,15 +406,10 @@ class _SidebarState extends State<Sidebar> {
                         const SizedBox(
                           height: 10,
                         ),
-                      ],
-                    ),
-                  if (role == 'Admin')
-                    Column(
-                      children: [
                         Row(
                           children: [
                             const Icon(
-                              Icons.person_4_outlined,
+                              Icons.meeting_room_sharp,
                               color: Colors.white,
                             ),
                             const SizedBox(
@@ -159,15 +421,15 @@ class _SidebarState extends State<Sidebar> {
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) =>
-                                        AddLectures(id: widget.id),
+                                        BookLecHall(id: widget.id),
                                   ),
                                 );
                               },
                               child: const Text(
-                                "Add Lectures",
+                                "Book Lecture Halle",
                                 style: TextStyle(
-                                  fontSize: 18,
                                   color: Colors.white,
+                                  fontSize: 18,
                                   fontWeight: FontWeight.w700,
                                 ),
                               ),
@@ -177,15 +439,10 @@ class _SidebarState extends State<Sidebar> {
                         const SizedBox(
                           height: 10,
                         ),
-                      ],
-                    ),
-                  if (role == 'Admin')
-                    Column(
-                      children: [
                         Row(
                           children: [
                             const Icon(
-                              Icons.settings_input_component,
+                              Icons.schedule_rounded,
                               color: Colors.white,
                             ),
                             const SizedBox(
@@ -197,15 +454,15 @@ class _SidebarState extends State<Sidebar> {
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) =>
-                                        AddRequiqment(id: widget.id),
+                                        ViewShedule(id: widget.id),
                                   ),
                                 );
                               },
                               child: const Text(
-                                "Add Equiqment",
+                                "View Schedule",
                                 style: TextStyle(
-                                  fontSize: 18,
                                   color: Colors.white,
+                                  fontSize: 18,
                                   fontWeight: FontWeight.w700,
                                 ),
                               ),
@@ -215,15 +472,42 @@ class _SidebarState extends State<Sidebar> {
                         const SizedBox(
                           height: 10,
                         ),
-                      ],
-                    ),
-                  if (role == 'Admin')
-                    Column(
-                      children: [
                         Row(
                           children: [
                             const Icon(
-                              Icons.report,
+                              Icons.send_rounded,
+                              color: Colors.white,
+                            ),
+                            const SizedBox(
+                              width: 5,
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => Msg(stId: widget.id),
+                                  ),
+                                );
+                              },
+                              child: const Text(
+                                "Message",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(
+                          height: 10,
+                        ),
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.person_add,
                               color: Colors.white,
                             ),
                             const SizedBox(
@@ -235,286 +519,23 @@ class _SidebarState extends State<Sidebar> {
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) =>
-                                        Reportview(id: widget.id),
+                                        Profile(id: widget.id),
                                   ),
                                 );
                               },
                               child: const Text(
-                                "Report View",
+                                "Profile",
                                 style: TextStyle(
-                                  fontSize: 18,
                                   color: Colors.white,
+                                  fontSize: 18,
                                   fontWeight: FontWeight.w700,
                                 ),
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(
-                          height: 10,
-                        ),
                       ],
                     ),
-                  if (role == 'Admin')
-                    Column(
-                      children: [
-                        Row(
-                          children: [
-                            const Icon(
-                              Icons.person_3_outlined,
-                              color: Colors.white,
-                            ),
-                            const SizedBox(
-                              width: 5,
-                            ),
-                            TextButton(
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        AddNonAcdamicStarff(id: widget.id),
-                                  ),
-                                );
-                              },
-                              child: const Text(
-                                "Add Non Acadamic staff",
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(
-                          height: 10,
-                        ),
-                      ],
-                    ),
-                  if (role == 'Lecture')
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.report_problem,
-                          color: Colors.white,
-                        ),
-                        const SizedBox(
-                          width: 5,
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => Report(id: widget.id),
-                              ),
-                            );
-                          },
-                          child: const Text(
-                            "Add Report",
-                            style: TextStyle(
-                              fontSize: 18,
-                              color: Colors.white,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.settings_input_composite_outlined,
-                        color: Colors.white,
-                      ),
-                      const SizedBox(
-                        width: 5,
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  BookEquiqment(id: widget.id),
-                            ),
-                          );
-                        },
-                        child: const Text(
-                          "Book Equiqment",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.meeting_room_sharp,
-                        color: Colors.white,
-                      ),
-                      const SizedBox(
-                        width: 5,
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => BookLecHall(id: widget.id),
-                            ),
-                          );
-                        },
-                        child: const Text(
-                          "Book Lecture Halle",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.schedule_rounded,
-                        color: Colors.white,
-                      ),
-                      const SizedBox(
-                        width: 5,
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ViewShedule(id: widget.id),
-                            ),
-                          );
-                        },
-                        child: const Text(
-                          "View Schedule",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.send_rounded,
-                        color: Colors.white,
-                      ),
-                      const SizedBox(
-                        width: 5,
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => Msg(stId: widget.id),
-                            ),
-                          );
-                        },
-                        child: const Text(
-                          "Message",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.notification_add_rounded,
-                        color: Colors.white,
-                      ),
-                      const SizedBox(
-                        width: 5,
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  Notifications(id: widget.id),
-                            ),
-                          );
-                        },
-                        child: const Text(
-                          "Notifications",
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.person_add,
-                        color: Colors.white,
-                      ),
-                      const SizedBox(
-                        width: 5,
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => Profile(id: widget.id),
-                            ),
-                          );
-                        },
-                        child: const Text(
-                          "Profile",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                    ],
                   ),
                 ],
               ),

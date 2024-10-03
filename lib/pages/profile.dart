@@ -168,16 +168,50 @@ class _ProfileState extends State<Profile> {
                                 GestureDetector(
                                   onTap: () {},
                                   child: ClipOval(
-                                    child: Image.network(
-                                      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSXNHDqxmIYwry1G1NuywsgYUaxJINUmx8trA&s",
-                                      width: 100,
-                                      height: 100,
-                                      fit: BoxFit.cover,
-                                      errorBuilder:
-                                          (context, error, stackTrace) {
-                                        return const Icon(Icons.male);
-                                      },
-                                    ),
+                                    child: userData!['img'] != null
+                                        ? Image.network(
+                                            userData!['img'],
+                                            width: 50,
+                                            height: 50,
+                                            fit: BoxFit.fitWidth,
+                                            loadingBuilder:
+                                                (BuildContext context,
+                                                    Widget child,
+                                                    ImageChunkEvent?
+                                                        loadingProgress) {
+                                              if (loadingProgress == null) {
+                                                return child;
+                                              } else {
+                                                return Center(
+                                                  child:
+                                                      CircularProgressIndicator(
+                                                    value: loadingProgress
+                                                                .expectedTotalBytes !=
+                                                            null
+                                                        ? loadingProgress
+                                                                .cumulativeBytesLoaded /
+                                                            (loadingProgress
+                                                                    .expectedTotalBytes
+                                                                as double)
+                                                        : null,
+                                                  ),
+                                                );
+                                              }
+                                            },
+                                            errorBuilder: (BuildContext context,
+                                                Object exception,
+                                                StackTrace? stackTrace) {
+                                              return const Icon(
+                                                Icons.error,
+                                                size: 20,
+                                                color: Colors.red,
+                                              );
+                                            },
+                                          )
+                                        : const Icon(
+                                            Icons.account_circle,
+                                            size: 20,
+                                          ),
                                   ),
                                 ),
                                 const SizedBox(

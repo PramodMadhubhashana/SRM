@@ -41,68 +41,69 @@ class _MsgState extends State<Msg> {
                 width: 300,
                 child: Sidebar(id: widget.stId),
               ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Messsage",
-                        style: TextStyle(
-                          fontSize: 20,
-                          color: Appcolors.primaryTextColor,
-                          fontWeight: FontWeight.w700,
+            SingleChildScrollView(
+              physics: const ScrollPhysics(parent: BouncingScrollPhysics()),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Messsage",
+                          style: TextStyle(
+                            fontSize: 20,
+                            color: Appcolors.primaryTextColor,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
-                      ),
-                      const SizedBox(
-                        height: 20,
-                      ),
-                      SizedBox(
-                        height: 200,
-                        width: 350,
-                        child: TextFormField(
-                          controller: _msgController,
-                          keyboardType: TextInputType.multiline,
-                          maxLines: null,
-                          minLines: 1,
-                          decoration: InputDecoration(
-                            labelText: "Message",
-                            enabledBorder: OutlineInputBorder(
-                              borderSide: BorderSide(
-                                color: Appcolors.primaryTextColor,
+                        const SizedBox(
+                          height: 20,
+                        ),
+                        SizedBox(
+                          height: 200,
+                          width: 350,
+                          child: TextFormField(
+                            controller: _msgController,
+                            keyboardType: TextInputType.multiline,
+                            maxLines: null,
+                            minLines: 1,
+                            decoration: InputDecoration(
+                              labelText: "Message",
+                              enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: Appcolors.primaryTextColor,
+                                ),
                               ),
                             ),
                           ),
                         ),
-                      ),
-                      const SizedBox(
-                        height: 20,
-                      ),
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(15),
+                        const SizedBox(
+                          height: 20,
+                        ),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                            foregroundColor: Colors.white,
+                            backgroundColor: Appcolors.primaryTextColor,
+                          ).copyWith(
+                            elevation: ButtonStyleButton.allOrNull(5),
                           ),
-                          foregroundColor: Colors.white,
-                          backgroundColor: Appcolors.primaryTextColor,
-                        ).copyWith(
-                          elevation: ButtonStyleButton.allOrNull(5),
+                          onPressed: sendMsg,
+                          child: const Text(
+                            'Send',
+                            style: TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.w500),
+                          ),
                         ),
-                        onPressed: sendMsg,
-                        child: const Text(
-                          'Send',
-                          style: TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.w500),
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-                Expanded(
-                  child: SizedBox(
+                  SizedBox(
                     height: 600,
                     width: screenSize.width - 300,
                     child: Padding(
@@ -120,10 +121,13 @@ class _MsgState extends State<Msg> {
                             var items = snapshot.data!.docs;
 
                             return ListView.builder(
+                              physics: const NeverScrollableScrollPhysics(),
+                              shrinkWrap: true,
                               itemCount: items.length,
                               itemBuilder: (context, index) {
                                 var item =
                                     items[index].data() as Map<String, dynamic>;
+                                String id = items[index].id;
                                 int secound = item['DateTime'].seconds;
                                 int nanoseconds = item['DateTime'].nanoseconds;
                                 DateTime dateTime =
@@ -170,7 +174,21 @@ class _MsgState extends State<Msg> {
                                         Align(
                                           alignment: Alignment.centerRight,
                                           child: IconButton(
-                                            onPressed: () {},
+                                            onPressed: () async {
+                                              final result = await _authService
+                                                  .deletemsg(id);
+
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(
+                                                SnackBar(
+                                                  content: Text(
+                                                    result == "Succesfull"
+                                                        ? "Delete Successful."
+                                                        : "Delete fail",
+                                                  ),
+                                                ),
+                                              );
+                                            },
                                             icon: const Icon(
                                               Icons.close,
                                               size: 15,
@@ -189,8 +207,8 @@ class _MsgState extends State<Msg> {
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ],
         ),
